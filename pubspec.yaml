@@ -27,7 +27,3 @@ flutter:
   uses-material-design: true
   assets:
     - assets/images/
-  fonts:
-    - family: FortuneIcons
-      fonts:
-        - asset: assets/fonts/FortuneIcons.ttf
