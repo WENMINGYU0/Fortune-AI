@@ -1,0 +1,2782 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Fortune AI - 智能命理大师</title>
+<style>
+/* ==================== RESET & BASE ==================== */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html, body {
+  width: 100%; height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  background: #0d0d20;
+  color: #e0dfe6;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+input, textarea, button { font-family: inherit; border: none; outline: none; background: none; color: inherit; }
+a { text-decoration: none; color: inherit; }
+::-webkit-scrollbar { width: 0; height: 0; }
+
+/* ==================== VARIABLES ==================== */
+:root {
+  --bg-primary: #0d0d20;
+  --bg-secondary: #12122a;
+  --bg-card: rgba(255, 255, 255, 0.05);
+  --bg-card-hover: rgba(255, 255, 255, 0.08);
+  --bg-card-solid: #1a1a35;
+  --gold: #d4af37;
+  --gold-light: #e8cc6e;
+  --gold-dim: rgba(212, 175, 55, 0.3);
+  --purple: #8b5cf6;
+  --purple-light: #a78bfa;
+  --purple-dim: rgba(139, 92, 246, 0.3);
+  --red: #ef4444;
+  --red-dim: rgba(239, 68, 68, 0.3);
+  --green: #22c55e;
+  --green-dim: rgba(34, 197, 94, 0.3);
+  --blue: #3b82f6;
+  --blue-dim: rgba(59, 130, 246, 0.3);
+  --pink: #ec4899;
+  --pink-dim: rgba(236, 72, 153, 0.3);
+  --orange: #f97316;
+  --cyan: #06b6d4;
+  --text-primary: #e0dfe6;
+  --text-secondary: rgba(224, 223, 230, 0.6);
+  --text-dim: rgba(224, 223, 230, 0.35);
+  --border: rgba(255, 255, 255, 0.08);
+  --shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-full: 9999px;
+  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* ==================== LAYOUT ==================== */
+.app-container {
+  width: 100%;
+  height: 100%;
+  max-width: 430px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  background: var(--bg-primary);
+}
+
+/* ==================== STATUS BAR ==================== */
+.status-bar {
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  font-size: 12px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+.status-bar .time { font-weight: 700; }
+.status-bar .icons { display: flex; gap: 6px; align-items: center; }
+
+/* ==================== HEADER ==================== */
+.page-header {
+  padding: 8px 20px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+.page-header h1 {
+  font-size: 20px;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--gold), var(--gold-light));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.page-header .subtitle {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+.header-actions { display: flex; gap: 12px; align-items: center; }
+.header-btn {
+  width: 36px; height: 36px;
+  border-radius: var(--radius-full);
+  background: var(--bg-card);
+  display: flex; align-items: center; justify-content: center;
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--border);
+  transition: var(--transition);
+  cursor: pointer;
+  font-size: 16px;
+}
+.header-btn:hover { background: var(--bg-card-hover); }
+
+/* ==================== TAB CONTENT AREA ==================== */
+.tab-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  padding-bottom: 80px;
+}
+.tab-page {
+  display: none;
+  animation: fadeIn 0.3s ease;
+  min-height: 100%;
+}
+.tab-page.active { display: block; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ==================== BOTTOM TAB BAR ==================== */
+.bottom-tab-bar {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 72px;
+  background: rgba(13, 13, 32, 0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding-bottom: var(--safe-bottom);
+  z-index: 100;
+}
+.tab-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  padding: 4px 12px;
+  transition: var(--transition);
+  -webkit-tap-highlight-color: transparent;
+}
+.tab-item .tab-icon {
+  width: 24px; height: 24px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+  transition: var(--transition);
+}
+.tab-item .tab-label {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-dim);
+  transition: var(--transition);
+}
+.tab-item.active .tab-icon { color: var(--gold); }
+.tab-item.active .tab-label { color: var(--gold); font-weight: 600; }
+.tab-item.center-tab .tab-icon {
+  width: 44px; height: 44px;
+  background: linear-gradient(135deg, var(--purple), #6d28d9);
+  border-radius: var(--radius-full);
+  color: white;
+  font-size: 22px;
+  box-shadow: 0 4px 16px rgba(139, 92, 246, 0.4);
+  margin-top: -10px;
+}
+.tab-item.center-tab.active .tab-icon {
+  background: linear-gradient(135deg, var(--gold), #b8941f);
+  box-shadow: 0 4px 16px rgba(212, 175, 55, 0.4);
+}
+
+/* ==================== GLASS CARD ==================== */
+.glass-card {
+  background: var(--bg-card);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  transition: var(--transition);
+}
+.glass-card:hover { background: var(--bg-card-hover); }
+
+/* ==================== HOME PAGE ==================== */
+.home-section { padding: 0 20px 16px; }
+.home-section-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.home-section-title .icon { font-size: 16px; }
+
+/* Score Ring */
+.score-ring-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px 0 8px;
+}
+.score-ring-wrapper {
+  position: relative;
+  width: 160px;
+  height: 160px;
+}
+.score-ring-svg {
+  width: 100%; height: 100%;
+  transform: rotate(-90deg);
+}
+.score-ring-bg {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.06);
+  stroke-width: 10;
+}
+.score-ring-progress {
+  fill: none;
+  stroke: url(#scoreGradient);
+  stroke-width: 10;
+  stroke-linecap: round;
+  stroke-dasharray: 408;
+  stroke-dashoffset: 408;
+  transition: stroke-dashoffset 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.score-ring-glow {
+  fill: none;
+  stroke: url(#scoreGradient);
+  stroke-width: 16;
+  stroke-linecap: round;
+  stroke-dasharray: 408;
+  stroke-dashoffset: 408;
+  opacity: 0.2;
+  filter: blur(4px);
+  transition: stroke-dashoffset 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.score-center {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+.score-number {
+  font-size: 42px;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--gold), var(--gold-light));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1;
+}
+.score-label {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+.score-ring-halo {
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 200px; height: 200px;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle, rgba(212, 175, 55, 0.08) 0%, transparent 70%);
+  pointer-events: none;
+  animation: pulseHalo 3s ease-in-out infinite;
+}
+@keyframes pulseHalo {
+  0%, 100% { opacity: 0.5; transform: translate(-50%, -50%) scale(1); }
+  50% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+}
+
+.fortune-level {
+  margin-top: 8px;
+  padding: 4px 16px;
+  border-radius: var(--radius-full);
+  font-size: 13px;
+  font-weight: 600;
+  background: var(--gold-dim);
+  color: var(--gold);
+  border: 1px solid rgba(212, 175, 55, 0.2);
+}
+
+/* Dimension Cards */
+.dimension-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.dimension-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+}
+.dimension-ring-mini {
+  width: 48px; height: 48px;
+  flex-shrink: 0;
+  position: relative;
+}
+.dimension-ring-mini svg {
+  width: 100%; height: 100%;
+  transform: rotate(-90deg);
+}
+.dimension-ring-mini .ring-bg {
+  fill: none; stroke: rgba(255,255,255,0.06); stroke-width: 5;
+}
+.dimension-ring-mini .ring-progress {
+  fill: none; stroke-width: 5; stroke-linecap: round;
+  stroke-dasharray: 126;
+  stroke-dashoffset: 126;
+  transition: stroke-dashoffset 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.dimension-ring-mini .ring-value {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 12px;
+  font-weight: 700;
+}
+.dimension-info { flex: 1; min-width: 0; }
+.dimension-name {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.dimension-desc {
+  font-size: 11px;
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dimension-card.career .ring-progress { stroke: var(--blue); }
+.dimension-card.career .ring-value { color: var(--blue); }
+.dimension-card.love .ring-progress { stroke: var(--pink); }
+.dimension-card.love .ring-value { color: var(--pink); }
+.dimension-card.wealth .ring-progress { stroke: var(--gold); }
+.dimension-card.wealth .ring-value { color: var(--gold); }
+.dimension-card.health .ring-progress { stroke: var(--green); }
+.dimension-card.health .ring-value { color: var(--green); }
+
+/* AI Advice */
+.ai-advice-card {
+  position: relative;
+  overflow: hidden;
+}
+.ai-advice-card::before {
+  content: '';
+  position: absolute;
+  top: -50%; right: -30%;
+  width: 120px; height: 120px;
+  background: radial-gradient(circle, var(--purple-dim) 0%, transparent 70%);
+  pointer-events: none;
+}
+.ai-advice-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.ai-avatar {
+  width: 36px; height: 36px;
+  border-radius: var(--radius-full);
+  background: linear-gradient(135deg, var(--purple), #6d28d9);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.ai-advice-title { font-size: 14px; font-weight: 600; }
+.ai-advice-subtitle { font-size: 11px; color: var(--text-secondary); }
+.ai-advice-text {
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--text-primary);
+  position: relative;
+  z-index: 1;
+}
+.ai-advice-text .cursor-blink {
+  display: inline-block;
+  width: 2px;
+  height: 14px;
+  background: var(--gold);
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  animation: blink 1s step-end infinite;
+}
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* Lucky Elements */
+.lucky-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.lucky-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+}
+.lucky-icon {
+  width: 36px; height: 36px;
+  border-radius: var(--radius-md);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+.lucky-icon.number { background: var(--purple-dim); color: var(--purple); }
+.lucky-icon.color { background: var(--pink-dim); color: var(--pink); }
+.lucky-icon.direction { background: var(--blue-dim); color: var(--blue); }
+.lucky-icon.time { background: var(--gold-dim); color: var(--gold); }
+.lucky-label { font-size: 10px; color: var(--text-secondary); }
+.lucky-value { font-size: 14px; font-weight: 600; margin-top: 2px; }
+
+/* Quick Actions */
+.quick-actions {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 0 20px 20px;
+  -webkit-overflow-scrolling: touch;
+}
+.quick-action-btn {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: var(--radius-full);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(10px);
+  cursor: pointer;
+  transition: var(--transition);
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.quick-action-btn:hover { background: var(--bg-card-hover); border-color: var(--gold-dim); }
+.quick-action-btn .icon { font-size: 16px; }
+.quick-action-btn.primary {
+  background: linear-gradient(135deg, rgba(212,175,55,0.15), rgba(139,92,246,0.15));
+  border-color: rgba(212,175,55,0.3);
+  color: var(--gold);
+}
+
+/* ==================== CHARTS PAGE ==================== */
+.chart-tabs {
+  display: flex;
+  gap: 0;
+  padding: 0 20px;
+  margin-bottom: 16px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.chart-tab {
+  flex-shrink: 0;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: var(--transition);
+  white-space: nowrap;
+}
+.chart-tab.active {
+  color: var(--gold);
+  border-bottom-color: var(--gold);
+  font-weight: 600;
+}
+.chart-sub-page { display: none; padding: 0 20px 16px; }
+.chart-sub-page.active { display: block; animation: fadeIn 0.3s ease; }
+
+/* Bazi - Four Pillars */
+.pillars-container {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.pillar-card {
+  text-align: center;
+  padding: 14px 8px;
+  position: relative;
+  overflow: hidden;
+}
+.pillar-card::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 50%;
+  transform: translateX(-50%);
+  width: 30px; height: 2px;
+  border-radius: 1px;
+}
+.pillar-card.year::after { background: var(--blue); }
+.pillar-card.month::after { background: var(--green); }
+.pillar-card.day::after { background: var(--gold); }
+.pillar-card.hour::after { background: var(--purple); }
+.pillar-label {
+  font-size: 10px;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+.pillar-stem {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.pillar-branch {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+.pillar-element {
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  display: inline-block;
+}
+
+/* Five Elements Chart */
+.five-elements-chart {
+  padding: 16px;
+}
+.elements-bar-container {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 16px;
+  height: 140px;
+  padding: 0 8px;
+}
+.element-bar-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  max-width: 60px;
+}
+.element-bar {
+  width: 100%;
+  border-radius: 6px 6px 2px 2px;
+  position: relative;
+  transition: height 1s cubic-bezier(0.4, 0, 0.2, 1);
+  min-height: 4px;
+}
+.element-bar.wood { background: linear-gradient(to top, #22c55e, #4ade80); }
+.element-bar.fire { background: linear-gradient(to top, #ef4444, #f87171); }
+.element-bar.earth { background: linear-gradient(to top, #d4af37, #e8cc6e); }
+.element-bar.metal { background: linear-gradient(to top, #e5e7eb, #f3f4f6); }
+.element-bar.water { background: linear-gradient(to top, #3b82f6, #60a5fa); }
+.element-bar-value {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+.element-bar-label {
+  font-size: 12px;
+  font-weight: 600;
+  margin-top: 2px;
+}
+.element-bar-label.wood { color: var(--green); }
+.element-bar-label.fire { color: var(--red); }
+.element-bar-label.earth { color: var(--gold); }
+.element-bar-label.metal { color: #e5e7eb; }
+.element-bar-label.water { color: var(--blue); }
+
+/* Day Master */
+.day-master-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+.day-master-symbol {
+  width: 56px; height: 56px;
+  border-radius: var(--radius-full);
+  background: linear-gradient(135deg, var(--gold-dim), var(--purple-dim));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 28px;
+  flex-shrink: 0;
+  border: 2px solid var(--gold-dim);
+}
+.day-master-info { flex: 1; }
+.day-master-name { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+.day-master-desc { font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
+
+/* Major Cycles Timeline */
+.cycles-timeline {
+  position: relative;
+  padding-left: 24px;
+}
+.cycles-timeline::before {
+  content: '';
+  position: absolute;
+  left: 7px; top: 0; bottom: 0;
+  width: 2px;
+  background: var(--border);
+}
+.cycle-item {
+  position: relative;
+  padding: 0 0 20px 16px;
+}
+.cycle-item::before {
+  content: '';
+  position: absolute;
+  left: -21px; top: 6px;
+  width: 10px; height: 10px;
+  border-radius: var(--radius-full);
+  border: 2px solid var(--border);
+  background: var(--bg-primary);
+}
+.cycle-item.current::before {
+  border-color: var(--gold);
+  background: var(--gold);
+  box-shadow: 0 0 8px rgba(212, 175, 55, 0.4);
+}
+.cycle-age {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 2px;
+}
+.cycle-item.current .cycle-age { color: var(--gold); }
+.cycle-pillars {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+.cycle-element {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+/* Ziwei - 12 Palace Grid */
+.palace-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(4, 1fr);
+  gap: 4px;
+  aspect-ratio: 1;
+  margin-bottom: 16px;
+}
+.palace-cell {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  cursor: pointer;
+  transition: var(--transition);
+  position: relative;
+}
+.palace-cell:hover { background: var(--bg-card-hover); }
+.palace-cell.life-palace {
+  background: rgba(212, 175, 55, 0.1);
+  border-color: var(--gold-dim);
+  box-shadow: 0 0 12px rgba(212, 175, 55, 0.1);
+}
+.palace-cell.center-cell {
+  background: linear-gradient(135deg, rgba(139,92,246,0.15), rgba(212,175,55,0.15));
+  border-color: var(--purple-dim);
+  grid-column: 2 / 4;
+  grid-row: 2 / 4;
+}
+.palace-name {
+  font-size: 9px;
+  color: var(--text-secondary);
+  margin-bottom: 2px;
+}
+.palace-star {
+  font-size: 12px;
+  font-weight: 700;
+}
+.palace-cell.life-palace .palace-name { color: var(--gold); }
+.palace-cell.life-palace .palace-star { color: var(--gold); }
+
+/* Astrology */
+.astro-trio {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.astro-sign-card {
+  flex: 1;
+  text-align: center;
+  padding: 16px 8px;
+  position: relative;
+}
+.astro-sign-card::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 50%;
+  transform: translateX(-50%);
+  width: 40px; height: 3px;
+  border-radius: 2px;
+}
+.astro-sign-card.sun::after { background: var(--gold); }
+.astro-sign-card.moon::after { background: var(--purple); }
+.astro-sign-card.rising::after { background: var(--cyan); }
+.astro-symbol { font-size: 28px; margin-bottom: 6px; }
+.astro-type { font-size: 10px; color: var(--text-secondary); margin-bottom: 4px; }
+.astro-sign-name { font-size: 14px; font-weight: 700; }
+.astro-date { font-size: 10px; color: var(--text-secondary); margin-top: 2px; }
+
+.planet-list { margin-top: 12px; }
+.planet-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+.planet-item:last-child { border-bottom: none; }
+.planet-left { display: flex; align-items: center; gap: 10px; }
+.planet-symbol { font-size: 18px; width: 24px; text-align: center; }
+.planet-name { font-size: 13px; font-weight: 500; }
+.planet-sign { font-size: 13px; font-weight: 600; color: var(--gold); }
+
+/* Tarot */
+.tarot-spread {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  margin: 20px 0;
+  perspective: 1000px;
+}
+.tarot-card {
+  width: 90px;
+  height: 140px;
+  position: relative;
+  cursor: pointer;
+  perspective: 800px;
+}
+.tarot-card-inner {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: var(--radius-md);
+}
+.tarot-card.flipped .tarot-card-inner {
+  transform: rotateY(180deg);
+}
+.tarot-card-front, .tarot-card-back {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.tarot-card-front {
+  background: linear-gradient(135deg, #1a1a3a, #2a1a3a);
+  border: 1px solid var(--purple-dim);
+}
+.tarot-card-front .card-pattern {
+  font-size: 32px;
+  opacity: 0.6;
+}
+.tarot-card-front .card-label {
+  font-size: 9px;
+  color: var(--text-secondary);
+  margin-top: 6px;
+}
+.tarot-card-back {
+  background: linear-gradient(135deg, #1a1a35, #1a2a3a);
+  border: 1px solid var(--gold-dim);
+  transform: rotateY(180deg);
+  padding: 8px;
+}
+.tarot-card-back .card-number {
+  font-size: 10px;
+  color: var(--gold);
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.tarot-card-back .card-art {
+  font-size: 28px;
+  margin-bottom: 4px;
+}
+.tarot-card-back .card-name {
+  font-size: 10px;
+  font-weight: 600;
+  text-align: center;
+  line-height: 1.3;
+}
+.tarot-card-back .card-meaning {
+  font-size: 8px;
+  color: var(--text-secondary);
+  text-align: center;
+  margin-top: 4px;
+}
+.tarot-position-label {
+  text-align: center;
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-top: 8px;
+}
+.draw-tarot-btn {
+  display: block;
+  margin: 16px auto;
+  padding: 10px 28px;
+  border-radius: var(--radius-full);
+  background: linear-gradient(135deg, var(--purple), #6d28d9);
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  box-shadow: 0 4px 16px rgba(139, 92, 246, 0.3);
+}
+.draw-tarot-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4); }
+.draw-tarot-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+/* Numerology */
+.numerology-display {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+.num-card {
+  flex: 1;
+  text-align: center;
+  padding: 20px 12px;
+}
+.num-circle {
+  width: 64px; height: 64px;
+  border-radius: var(--radius-full);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 28px;
+  font-weight: 800;
+  margin: 0 auto 10px;
+}
+.num-card.life .num-circle {
+  background: linear-gradient(135deg, var(--purple-dim), rgba(139,92,246,0.1));
+  border: 2px solid var(--purple-dim);
+  color: var(--purple-light);
+}
+.num-card.destiny .num-circle {
+  background: linear-gradient(135deg, var(--gold-dim), rgba(212,175,55,0.1));
+  border: 2px solid var(--gold-dim);
+  color: var(--gold-light);
+}
+.num-card.soul .num-circle {
+  background: linear-gradient(135deg, var(--pink-dim), rgba(236,72,153,0.1));
+  border: 2px solid var(--pink-dim);
+  color: var(--pink);
+}
+.num-label { font-size: 12px; color: var(--text-secondary); margin-bottom: 4px; }
+.num-name { font-size: 15px; font-weight: 700; }
+
+/* Human Design */
+.hd-type-card {
+  text-align: center;
+  padding: 20px;
+  margin-bottom: 12px;
+}
+.hd-type-icon { font-size: 36px; margin-bottom: 8px; }
+.hd-type-name { font-size: 18px; font-weight: 700; margin-bottom: 4px; color: var(--gold); }
+.hd-type-desc { font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
+.hd-info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.hd-info-item {
+  padding: 14px;
+  text-align: center;
+}
+.hd-info-label { font-size: 10px; color: var(--text-secondary); margin-bottom: 4px; }
+.hd-info-value { font-size: 14px; font-weight: 600; }
+
+/* ==================== AI MASTER PAGE ==================== */
+.ai-master-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.engine-selector {
+  display: flex;
+  gap: 0;
+  padding: 0 20px;
+  margin-bottom: 12px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.engine-tab {
+  flex-shrink: 0;
+  padding: 6px 12px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: var(--transition);
+  white-space: nowrap;
+  background: var(--bg-card);
+  margin-right: 6px;
+  border: 1px solid var(--border);
+}
+.engine-tab.active {
+  background: var(--purple-dim);
+  color: var(--purple-light);
+  border-color: var(--purple-dim);
+}
+.preset-questions {
+  padding: 0 20px;
+  margin-bottom: 12px;
+}
+.preset-q {
+  padding: 10px 14px;
+  margin-bottom: 8px;
+  border-radius: var(--radius-md);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: var(--transition);
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.preset-q:hover { background: var(--bg-card-hover); border-color: var(--gold-dim); }
+.preset-q .icon { font-size: 14px; flex-shrink: 0; }
+
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 20px 16px;
+  -webkit-overflow-scrolling: touch;
+}
+.chat-bubble {
+  max-width: 85%;
+  padding: 12px 16px;
+  border-radius: var(--radius-lg);
+  margin-bottom: 12px;
+  font-size: 13px;
+  line-height: 1.6;
+  animation: bubbleIn 0.3s ease;
+}
+@keyframes bubbleIn {
+  from { opacity: 0; transform: translateY(8px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.chat-bubble.user {
+  background: linear-gradient(135deg, var(--purple), #6d28d9);
+  color: white;
+  margin-left: auto;
+  border-bottom-right-radius: 4px;
+}
+.chat-bubble.ai {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  margin-right: auto;
+  border-bottom-left-radius: 4px;
+}
+.chat-bubble.ai .engine-tag {
+  display: inline-block;
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  background: var(--purple-dim);
+  color: var(--purple-light);
+  margin-bottom: 8px;
+}
+.chat-bubble .streaming-cursor {
+  display: inline-block;
+  width: 2px; height: 13px;
+  background: var(--gold);
+  vertical-align: text-bottom;
+  animation: blink 1s step-end infinite;
+}
+/* Cross validation */
+.cross-validation {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+.cv-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.cv-tab {
+  padding: 3px 10px;
+  font-size: 10px;
+  border-radius: var(--radius-full);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: var(--transition);
+}
+.cv-tab.active {
+  background: var(--gold-dim);
+  color: var(--gold);
+  border-color: var(--gold-dim);
+}
+.cv-content { font-size: 12px; line-height: 1.6; color: var(--text-secondary); }
+
+.chat-input-area {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 20px;
+  padding-bottom: calc(12px + var(--safe-bottom));
+  border-top: 1px solid var(--border);
+  background: rgba(13, 13, 32, 0.95);
+  backdrop-filter: blur(12px);
+  flex-shrink: 0;
+}
+.chat-input {
+  flex: 1;
+  padding: 10px 16px;
+  border-radius: var(--radius-full);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  font-size: 13px;
+  transition: var(--transition);
+}
+.chat-input:focus { border-color: var(--purple-dim); }
+.chat-input::placeholder { color: var(--text-dim); }
+.send-btn {
+  width: 40px; height: 40px;
+  border-radius: var(--radius-full);
+  background: linear-gradient(135deg, var(--purple), #6d28d9);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  transition: var(--transition);
+  flex-shrink: 0;
+  font-size: 18px;
+  color: white;
+}
+.send-btn:hover { transform: scale(1.05); }
+.send-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+/* ==================== REPORTS PAGE ==================== */
+.reports-list { padding: 0 20px 16px; }
+.report-card {
+  margin-bottom: 12px;
+  padding: 16px;
+  position: relative;
+  overflow: hidden;
+}
+.report-card::before {
+  content: '';
+  position: absolute;
+  top: -20px; right: -20px;
+  width: 80px; height: 80px;
+  border-radius: var(--radius-full);
+  opacity: 0.15;
+}
+.report-card.bazi-report::before { background: var(--gold); }
+.report-card.ziwei-report::before { background: var(--purple); }
+.report-card.astro-report::before { background: var(--blue); }
+.report-card.tarot-report::before { background: var(--pink); }
+.report-card.comprehensive-report::before { background: linear-gradient(135deg, var(--gold), var(--purple)); }
+.report-header { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+.report-icon {
+  width: 44px; height: 44px;
+  border-radius: var(--radius-md);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px;
+  flex-shrink: 0;
+}
+.report-card.bazi-report .report-icon { background: var(--gold-dim); }
+.report-card.ziwei-report .report-icon { background: var(--purple-dim); }
+.report-card.astro-report .report-icon { background: var(--blue-dim); }
+.report-card.tarot-report .report-icon { background: var(--pink-dim); }
+.report-card.comprehensive-report .report-icon { background: linear-gradient(135deg, var(--gold-dim), var(--purple-dim)); }
+.report-title { font-size: 15px; font-weight: 700; }
+.report-meta { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
+.report-desc { font-size: 12px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 12px; }
+.report-footer { display: flex; align-items: center; justify-content: space-between; }
+.report-price {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--gold);
+}
+.report-price .unit { font-size: 12px; font-weight: 400; }
+.buy-btn {
+  padding: 7px 20px;
+  border-radius: var(--radius-full);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+}
+.buy-btn.gold {
+  background: linear-gradient(135deg, var(--gold), #b8941f);
+  color: #0d0d20;
+  box-shadow: 0 2px 12px rgba(212, 175, 55, 0.3);
+}
+.buy-btn.purple {
+  background: linear-gradient(135deg, var(--purple), #6d28d9);
+  color: white;
+  box-shadow: 0 2px 12px rgba(139, 92, 246, 0.3);
+}
+.buy-btn:hover { transform: translateY(-1px); }
+
+/* ==================== PROFILE PAGE ==================== */
+.profile-header-card {
+  text-align: center;
+  padding: 24px 16px;
+  margin: 0 20px 16px;
+}
+.profile-avatar {
+  width: 72px; height: 72px;
+  border-radius: var(--radius-full);
+  background: linear-gradient(135deg, var(--gold-dim), var(--purple-dim));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 32px;
+  margin: 0 auto 10px;
+  border: 2px solid var(--gold-dim);
+  position: relative;
+}
+.profile-avatar::after {
+  content: '✦';
+  position: absolute;
+  bottom: -2px; right: -2px;
+  width: 22px; height: 22px;
+  background: var(--gold);
+  border-radius: var(--radius-full);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px;
+  color: #0d0d20;
+}
+.profile-name { font-size: 18px; font-weight: 700; margin-bottom: 2px; }
+.profile-id { font-size: 11px; color: var(--text-secondary); }
+
+.membership-card {
+  margin: 0 20px 16px;
+  padding: 16px;
+  background: linear-gradient(135deg, rgba(212,175,55,0.12), rgba(139,92,246,0.12));
+  border-color: rgba(212,175,55,0.2);
+  position: relative;
+  overflow: hidden;
+}
+.membership-card::before {
+  content: '';
+  position: absolute;
+  top: -30px; right: -30px;
+  width: 100px; height: 100px;
+  background: radial-gradient(circle, rgba(212,175,55,0.1) 0%, transparent 70%);
+}
+.membership-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.membership-tier { font-size: 14px; font-weight: 600; }
+.membership-badge {
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  font-size: 10px;
+  font-weight: 600;
+}
+.membership-badge.free {
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+}
+.membership-badge.premium {
+  background: var(--gold-dim);
+  color: var(--gold);
+  border: 1px solid rgba(212,175,55,0.2);
+}
+.membership-benefits {
+  font-size: 11px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+.upgrade-btn {
+  display: block;
+  width: 100%;
+  margin-top: 12px;
+  padding: 10px;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, var(--gold), #b8941f);
+  color: #0d0d20;
+  font-size: 14px;
+  font-weight: 700;
+  text-align: center;
+  cursor: pointer;
+  transition: var(--transition);
+  box-shadow: 0 4px 16px rgba(212, 175, 55, 0.3);
+}
+.upgrade-btn:hover { transform: translateY(-1px); }
+
+.profile-menu {
+  padding: 0 20px;
+}
+.menu-item {
+  display: flex;
+  align-items: center;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: var(--transition);
+}
+.menu-item:last-child { border-bottom: none; }
+.menu-item:hover { opacity: 0.8; }
+.menu-icon {
+  width: 36px; height: 36px;
+  border-radius: var(--radius-md);
+  background: var(--bg-card);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+.menu-text { flex: 1; font-size: 14px; font-weight: 500; }
+.menu-arrow { color: var(--text-dim); font-size: 14px; }
+
+/* ==================== LOADING STATES ==================== */
+.loading-shimmer {
+  background: linear-gradient(90deg,
+    var(--bg-card) 25%,
+    rgba(255,255,255,0.08) 50%,
+    var(--bg-card) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: var(--radius-md);
+}
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.loading-spinner {
+  width: 24px; height: 24px;
+  border: 2px solid var(--border);
+  border-top-color: var(--gold);
+  border-radius: var(--radius-full);
+  animation: spin 0.8s linear infinite;
+  margin: 20px auto;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+.loading-dots {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+}
+.loading-dots span {
+  width: 6px; height: 6px;
+  border-radius: var(--radius-full);
+  background: var(--gold);
+  animation: dotPulse 1.4s infinite ease-in-out both;
+}
+.loading-dots span:nth-child(1) { animation-delay: -0.32s; }
+.loading-dots span:nth-child(2) { animation-delay: -0.16s; }
+@keyframes dotPulse {
+  0%, 80%, 100% { transform: scale(0); opacity: 0.3; }
+  40% { transform: scale(1); opacity: 1; }
+}
+
+/* ==================== TOAST ==================== */
+.toast-container {
+  position: fixed;
+  top: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  pointer-events: none;
+}
+.toast {
+  padding: 10px 20px;
+  border-radius: var(--radius-full);
+  background: rgba(30, 30, 50, 0.95);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(12px);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  animation: toastIn 0.3s ease, toastOut 0.3s ease 2.5s forwards;
+  white-space: nowrap;
+  box-shadow: var(--shadow);
+}
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(-12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes toastOut {
+  from { opacity: 1; }
+  to { opacity: 0; transform: translateY(-12px); }
+}
+
+/* ==================== MODAL ==================== */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 500;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: fadeIn 0.2s ease;
+}
+.modal-overlay.show { display: flex; }
+.modal-content {
+  width: 100%;
+  max-width: 360px;
+  background: var(--bg-card-solid);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border);
+  padding: 24px;
+  animation: modalIn 0.3s ease;
+}
+@keyframes modalIn {
+  from { opacity: 0; transform: scale(0.9) translateY(20px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+.modal-title { font-size: 18px; font-weight: 700; margin-bottom: 12px; text-align: center; }
+.modal-body { font-size: 13px; line-height: 1.6; color: var(--text-secondary); text-align: center; margin-bottom: 20px; }
+.modal-actions { display: flex; gap: 10px; }
+.modal-btn {
+  flex: 1;
+  padding: 10px;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+  cursor: pointer;
+  transition: var(--transition);
+}
+.modal-btn.cancel {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+}
+.modal-btn.confirm {
+  background: linear-gradient(135deg, var(--gold), #b8941f);
+  color: #0d0d20;
+}
+
+/* ==================== UTILITIES ==================== */
+.text-gold { color: var(--gold); }
+.text-purple { color: var(--purple); }
+.text-dim { color: var(--text-secondary); }
+.mt-8 { margin-top: 8px; }
+.mt-12 { margin-top: 12px; }
+.mt-16 { margin-top: 16px; }
+.mb-8 { margin-bottom: 8px; }
+.mb-12 { margin-bottom: 12px; }
+.mb-16 { margin-bottom: 16px; }
+.gap-8 { gap: 8px; }
+.gap-12 { gap: 12px; }
+.flex { display: flex; }
+.flex-center { display: flex; align-items: center; justify-content: center; }
+.flex-between { display: flex; align-items: center; justify-content: space-between; }
+.hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="app-container">
+  <!-- Status Bar -->
+  <div class="status-bar">
+    <span class="time" id="statusTime">9:41</span>
+    <div class="icons">
+      <span>📶</span>
+      <span>🔋</span>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Modal -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal-content">
+      <div class="modal-title" id="modalTitle">提示</div>
+      <div class="modal-body" id="modalBody">确认操作？</div>
+      <div class="modal-actions">
+        <div class="modal-btn cancel" onclick="closeModal()">取消</div>
+        <div class="modal-btn confirm" id="modalConfirmBtn" onclick="closeModal()">确认</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== HOME PAGE ====== -->
+  <div class="tab-page active" id="page-home">
+    <div class="page-header">
+      <div>
+        <h1>Fortune AI</h1>
+        <div class="subtitle">智能命理 · 洞见未来</div>
+      </div>
+      <div class="header-actions">
+        <div class="header-btn" onclick="refreshDailyFortune()">⟳</div>
+        <div class="header-btn" onclick="switchTab('profile')">👤</div>
+      </div>
+    </div>
+
+    <div class="tab-content">
+      <!-- Score Ring -->
+      <div class="home-section">
+        <div class="score-ring-container">
+          <div class="score-ring-wrapper">
+            <div class="score-ring-halo"></div>
+            <svg class="score-ring-svg" viewBox="0 0 160 160">
+              <defs>
+                <linearGradient id="scoreGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#d4af37"/>
+                  <stop offset="50%" stop-color="#8b5cf6"/>
+                  <stop offset="100%" stop-color="#d4af37"/>
+                </linearGradient>
+              </defs>
+              <circle class="score-ring-glow" cx="80" cy="80" r="65" id="scoreRingGlow"/>
+              <circle class="score-ring-bg" cx="80" cy="80" r="65"/>
+              <circle class="score-ring-progress" cx="80" cy="80" r="65" id="scoreRingProgress"/>
+            </svg>
+            <div class="score-center">
+              <div class="score-number" id="overallScore">--</div>
+              <div class="score-label">今日运势</div>
+            </div>
+          </div>
+          <div class="fortune-level" id="fortuneLevel">加载中...</div>
+        </div>
+      </div>
+
+      <!-- 4 Dimensions -->
+      <div class="home-section">
+        <div class="home-section-title"><span class="icon">📊</span> 四维运势</div>
+        <div class="dimension-grid">
+          <div class="glass-card dimension-card career">
+            <div class="dimension-ring-mini">
+              <svg viewBox="0 0 48 48">
+                <circle class="ring-bg" cx="24" cy="24" r="20"/>
+                <circle class="ring-progress" cx="24" cy="24" r="20" id="careerRing"/>
+              </svg>
+              <span class="ring-value" id="careerScore">--</span>
+            </div>
+            <div class="dimension-info">
+              <div class="dimension-name">事业运</div>
+              <div class="dimension-desc" id="careerDesc">--</div>
+            </div>
+          </div>
+          <div class="glass-card dimension-card love">
+            <div class="dimension-ring-mini">
+              <svg viewBox="0 0 48 48">
+                <circle class="ring-bg" cx="24" cy="24" r="20"/>
+                <circle class="ring-progress" cx="24" cy="24" r="20" id="loveRing"/>
+              </svg>
+              <span class="ring-value" id="loveScore">--</span>
+            </div>
+            <div class="dimension-info">
+              <div class="dimension-name">感情运</div>
+              <div class="dimension-desc" id="loveDesc">--</div>
+            </div>
+          </div>
+          <div class="glass-card dimension-card wealth">
+            <div class="dimension-ring-mini">
+              <svg viewBox="0 0 48 48">
+                <circle class="ring-bg" cx="24" cy="24" r="20"/>
+                <circle class="ring-progress" cx="24" cy="24" r="20" id="wealthRing"/>
+              </svg>
+              <span class="ring-value" id="wealthScore">--</span>
+            </div>
+            <div class="dimension-info">
+              <div class="dimension-name">财运</div>
+              <div class="dimension-desc" id="wealthDesc">--</div>
+            </div>
+          </div>
+          <div class="glass-card dimension-card health">
+            <div class="dimension-ring-mini">
+              <svg viewBox="0 0 48 48">
+                <circle class="ring-bg" cx="24" cy="24" r="20"/>
+                <circle class="ring-progress" cx="24" cy="24" r="20" id="healthRing"/>
+              </svg>
+              <span class="ring-value" id="healthScore">--</span>
+            </div>
+            <div class="dimension-info">
+              <div class="dimension-name">健康运</div>
+              <div class="dimension-desc" id="healthDesc">--</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AI Advice -->
+      <div class="home-section">
+        <div class="home-section-title"><span class="icon">🤖</span> AI 今日箴言</div>
+        <div class="glass-card ai-advice-card">
+          <div class="ai-advice-header">
+            <div class="ai-avatar">🔮</div>
+            <div>
+              <div class="ai-advice-title">Fortune AI 大师</div>
+              <div class="ai-advice-subtitle">综合八字 · 紫微 · 占星</div>
+            </div>
+          </div>
+          <div class="ai-advice-text" id="aiAdviceText">
+            <div class="loading-dots"><span></span><span></span><span></span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lucky Elements -->
+      <div class="home-section">
+        <div class="home-section-title"><span class="icon">✨</span> 幸运元素</div>
+        <div class="lucky-grid">
+          <div class="glass-card lucky-item">
+            <div class="lucky-icon number">🔢</div>
+            <div>
+              <div class="lucky-label">幸运数字</div>
+              <div class="lucky-value" id="luckyNumber">--</div>
+            </div>
+          </div>
+          <div class="glass-card lucky-item">
+            <div class="lucky-icon color">🎨</div>
+            <div>
+              <div class="lucky-label">幸运颜色</div>
+              <div class="lucky-value" id="luckyColor">--</div>
+            </div>
+          </div>
+          <div class="glass-card lucky-item">
+            <div class="lucky-icon direction">🧭</div>
+            <div>
+              <div class="lucky-label">幸运方位</div>
+              <div class="lucky-value" id="luckyDirection">--</div>
+            </div>
+          </div>
+          <div class="glass-card lucky-item">
+            <div class="lucky-icon time">🕐</div>
+            <div>
+              <div class="lucky-label">吉时</div>
+              <div class="lucky-value" id="luckyTime">--</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="home-section-title" style="padding: 0 20px;"><span class="icon">⚡</span> 快捷操作</div>
+      <div class="quick-actions">
+        <div class="quick-action-btn primary" onclick="switchTab('charts')">
+          <span class="icon">📋</span> 查看命盘
+        </div>
+        <div class="quick-action-btn" onclick="switchTab('ai')">
+          <span class="icon">🤖</span> AI解盘
+        </div>
+        <div class="quick-action-btn" onclick="switchTab('reports')">
+          <span class="icon">📖</span> 购买报告
+        </div>
+        <div class="quick-action-btn" onclick="drawTarotFromHome()">
+          <span class="icon">🃏</span> 抽塔罗
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== CHARTS PAGE ====== -->
+  <div class="tab-page" id="page-charts">
+    <div class="page-header">
+      <div>
+        <h1>命盘分析</h1>
+        <div class="subtitle">六大命理体系 · 深度解读</div>
+      </div>
+      <div class="header-actions">
+        <div class="header-btn" onclick="refreshChart()">⟳</div>
+      </div>
+    </div>
+
+    <div class="chart-tabs" id="chartTabs">
+      <div class="chart-tab active" data-chart="bazi" onclick="switchChart('bazi')">八字</div>
+      <div class="chart-tab" data-chart="ziwei" onclick="switchChart('ziwei')">紫微</div>
+      <div class="chart-tab" data-chart="astro" onclick="switchChart('astro')">占星</div>
+      <div class="chart-tab" data-chart="tarot" onclick="switchChart('tarot')">塔罗</div>
+      <div class="chart-tab" data-chart="numerology" onclick="switchChart('numerology')">数字命理</div>
+      <div class="chart-tab" data-chart="humandesign" onclick="switchChart('humandesign')">人类图</div>
+    </div>
+
+    <div class="tab-content">
+      <!-- Bazi Sub-page -->
+      <div class="chart-sub-page active" id="chart-bazi">
+        <div class="home-section-title"><span class="icon">🏛️</span> 四柱八字</div>
+        <div class="pillars-container" id="pillarsContainer">
+          <div class="glass-card pillar-card year">
+            <div class="pillar-label">年柱</div>
+            <div class="pillar-stem" id="yearStem">乙</div>
+            <div class="pillar-branch" id="yearBranch">亥</div>
+            <div class="pillar-element" id="yearElement" style="background:var(--green-dim);color:var(--green);">木</div>
+          </div>
+          <div class="glass-card pillar-card month">
+            <div class="pillar-label">月柱</div>
+            <div class="pillar-stem" id="monthStem">壬</div>
+            <div class="pillar-branch" id="monthBranch">午</div>
+            <div class="pillar-element" id="monthElement" style="background:var(--red-dim);color:var(--red);">火</div>
+          </div>
+          <div class="glass-card pillar-card day">
+            <div class="pillar-label">日柱</div>
+            <div class="pillar-stem" id="dayStem">甲</div>
+            <div class="pillar-branch" id="dayBranch">寅</div>
+            <div class="pillar-element" id="dayElement" style="background:var(--green-dim);color:var(--green);">木</div>
+          </div>
+          <div class="glass-card pillar-card hour">
+            <div class="pillar-label">时柱</div>
+            <div class="pillar-stem" id="hourStem">辛</div>
+            <div class="pillar-branch" id="hourBranch">未</div>
+            <div class="pillar-element" id="hourElement" style="background:#e5e7eb33;color:#e5e7eb;">金</div>
+          </div>
+        </div>
+
+        <div class="home-section-title mt-16"><span class="icon">⚖️</span> 五行分布</div>
+        <div class="glass-card five-elements-chart" id="fiveElementsChart">
+          <div class="elements-bar-container" id="elementsBarContainer">
+            <div class="element-bar-wrapper">
+              <div class="element-bar-value">3</div>
+              <div class="element-bar wood" style="height:0px;" data-height="75"></div>
+              <div class="element-bar-label wood">木</div>
+            </div>
+            <div class="element-bar-wrapper">
+              <div class="element-bar-value">2</div>
+              <div class="element-bar fire" style="height:0px;" data-height="50"></div>
+              <div class="element-bar-label fire">火</div>
+            </div>
+            <div class="element-bar-wrapper">
+              <div class="element-bar-value">1</div>
+              <div class="element-bar earth" style="height:0px;" data-height="25"></div>
+              <div class="element-bar-label earth">土</div>
+            </div>
+            <div class="element-bar-wrapper">
+              <div class="element-bar-value">1</div>
+              <div class="element-bar metal" style="height:0px;" data-height="25"></div>
+              <div class="element-bar-label metal">金</div>
+            </div>
+            <div class="element-bar-wrapper">
+              <div class="element-bar-value">1</div>
+              <div class="element-bar water" style="height:0px;" data-height="25"></div>
+              <div class="element-bar-label water">水</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="home-section-title mt-16"><span class="icon">👑</span> 日主信息</div>
+        <div class="glass-card day-master-card">
+          <div class="day-master-symbol" id="dayMasterSymbol">甲</div>
+          <div class="day-master-info">
+            <div class="day-master-name" id="dayMasterName">甲木 · 阳木</div>
+            <div class="day-master-desc" id="dayMasterDesc">甲木参天，如大树般挺拔，具有领导才能和开创精神。为人正直，志向远大，但有时过于刚直。</div>
+          </div>
+        </div>
+
+        <div class="home-section-title mt-16"><span class="icon">🔄</span> 大运流年</div>
+        <div class="glass-card cycles-timeline" id="cyclesTimeline">
+          <div class="cycle-item current">
+            <div class="cycle-age">25-34岁 · 当前大运</div>
+            <div class="cycle-pillars">戊戌</div>
+            <div class="cycle-element">土 · 事业上升期</div>
+          </div>
+          <div class="cycle-item">
+            <div class="cycle-age">15-24岁</div>
+            <div class="cycle-pillars">己酉</div>
+            <div class="cycle-element">土 · 学业积累期</div>
+          </div>
+          <div class="cycle-item">
+            <div class="cycle-age">35-44岁</div>
+            <div class="cycle-pillars">己亥</div>
+            <div class="cycle-element">土 · 财运旺盛期</div>
+          </div>
+          <div class="cycle-item">
+            <div class="cycle-age">45-54岁</div>
+            <div class="cycle-pillars">庚子</div>
+            <div class="cycle-element">金 · 稳健发展期</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ziwei Sub-page -->
+      <div class="chart-sub-page" id="chart-ziwei">
+        <div class="home-section-title"><span class="icon">⭐</span> 紫微斗数 · 十二宫</div>
+        <div class="glass-card" style="padding:8px;">
+          <div class="palace-grid" id="palaceGrid">
+            <div class="palace-cell"><div class="palace-name">巳</div><div class="palace-star">天机</div></div>
+            <div class="palace-cell"><div class="palace-name">午</div><div class="palace-star">紫微</div></div>
+            <div class="palace-cell"><div class="palace-name">未</div><div class="palace-star">天相</div></div>
+            <div class="palace-cell"><div class="palace-name">申</div><div class="palace-star">七杀</div></div>
+            <div class="palace-cell"><div class="palace-name">辰</div><div class="palace-star">太阳</div></div>
+            <div class="palace-cell center-cell"><div class="palace-name" style="color:var(--gold);font-size:10px;">紫微命盘</div><div class="palace-star" style="font-size:16px;">🌟</div></div>
+            <div class="palace-cell"><div class="palace-name">酉</div><div class="palace-star">天同</div></div>
+            <div class="palace-cell life-palace"><div class="palace-name">命宫</div><div class="palace-star">武曲</div></div>
+            <div class="palace-cell center-cell"></div>
+            <div class="palace-cell"><div class="palace-name">戌</div><div class="palace-star">廉贞</div></div>
+            <div class="palace-cell"><div class="palace-name">卯</div><div class="palace-star">天梁</div></div>
+            <div class="palace-cell"><div class="palace-name">寅</div><div class="palace-star">破军</div></div>
+            <div class="palace-cell"><div class="palace-name">丑</div><div class="palace-star">贪狼</div></div>
+            <div class="palace-cell"><div class="palace-name">子</div><div class="palace-star">巨门</div></div>
+          </div>
+        </div>
+        <div class="glass-card mt-12">
+          <div class="home-section-title" style="margin-bottom:8px;"><span class="icon">🔮</span> 命宫解读</div>
+          <div style="font-size:13px;line-height:1.6;color:var(--text-secondary);">
+            命宫主星武曲，为财星入命，具有极强的理财能力和商业头脑。武曲性格刚毅果决，适合从事金融、管理等领域。配合紫微星系，具有领导格局，一生中财运较为突出。
+          </div>
+        </div>
+      </div>
+
+      <!-- Astro Sub-page -->
+      <div class="chart-sub-page" id="chart-astro">
+        <div class="home-section-title"><span class="icon">🌟</span> 西方占星</div>
+        <div class="astro-trio">
+          <div class="glass-card astro-sign-card sun">
+            <div class="astro-symbol">☉</div>
+            <div class="astro-type">太阳星座</div>
+            <div class="astro-sign-name" id="astroSun">双子座</div>
+            <div class="astro-date">5.21 - 6.21</div>
+          </div>
+          <div class="glass-card astro-sign-card moon">
+            <div class="astro-symbol">☽</div>
+            <div class="astro-type">月亮星座</div>
+            <div class="astro-sign-name" id="astroMoon">天秤座</div>
+            <div class="astro-date">风象星座</div>
+          </div>
+          <div class="glass-card astro-sign-card rising">
+            <div class="astro-symbol">ASC</div>
+            <div class="astro-type">上升星座</div>
+            <div class="astro-sign-name" id="astroRising">处女座</div>
+            <div class="astro-date">土象星座</div>
+          </div>
+        </div>
+        <div class="glass-card">
+          <div class="home-section-title" style="margin-bottom:4px;"><span class="icon">🪐</span> 行星落位</div>
+          <div class="planet-list" id="planetList">
+            <div class="planet-item"><div class="planet-left"><span class="planet-symbol">☿</span><span class="planet-name">水星</span></div><span class="planet-sign">双子座</span></div>
+            <div class="planet-item"><div class="planet-left"><span class="planet-symbol">♀</span><span class="planet-name">金星</span></div><span class="planet-sign">巨蟹座</span></div>
+            <div class="planet-item"><div class="planet-left"><span class="planet-symbol">♂</span><span class="planet-name">火星</span></div><span class="planet-sign">狮子座</span></div>
+            <div class="planet-item"><div class="planet-left"><span class="planet-symbol">♃</span><span class="planet-name">木星</span></div><span class="planet-sign">射手座</span></div>
+            <div class="planet-item"><div class="planet-left"><span class="planet-symbol">♄</span><span class="planet-name">土星</span></div><span class="planet-sign">双鱼座</span></div>
+            <div class="planet-item"><div class="planet-left"><span class="planet-symbol">♅</span><span class="planet-name">天王星</span></div><span class="planet-sign">摩羯座</span></div>
+            <div class="planet-item"><div class="planet-left"><span class="planet-symbol">♆</span><span class="planet-name">海王星</span></div><span class="planet-sign">水瓶座</span></div>
+            <div class="planet-item"><div class="planet-left"><span class="planet-symbol">♇</span><span class="planet-name">冥王星</span></div><span class="planet-sign">天蝎座</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tarot Sub-page -->
+      <div class="chart-sub-page" id="chart-tarot">
+        <div class="home-section-title"><span class="icon">🃏</span> 塔罗牌占卜</div>
+        <div style="text-align:center;font-size:12px;color:var(--text-secondary);margin-bottom:8px;">三牌阵 · 过去 · 现在 · 未来</div>
+        <div class="tarot-spread" id="tarotSpread">
+          <div class="tarot-card" id="tarotCard0">
+            <div class="tarot-card-inner">
+              <div class="tarot-card-front">
+                <div class="card-pattern">✦</div>
+                <div class="card-label">过去</div>
+              </div>
+              <div class="tarot-card-back">
+                <div class="card-number" id="tarotNum0"></div>
+                <div class="card-art" id="tarotArt0"></div>
+                <div class="card-name" id="tarotName0"></div>
+                <div class="card-meaning" id="tarotMeaning0"></div>
+              </div>
+            </div>
+          </div>
+          <div class="tarot-card" id="tarotCard1">
+            <div class="tarot-card-inner">
+              <div class="tarot-card-front">
+                <div class="card-pattern">✦</div>
+                <div class="card-label">现在</div>
+              </div>
+              <div class="tarot-card-back">
+                <div class="card-number" id="tarotNum1"></div>
+                <div class="card-art" id="tarotArt1"></div>
+                <div class="card-name" id="tarotName1"></div>
+                <div class="card-meaning" id="tarotMeaning1"></div>
+              </div>
+            </div>
+          </div>
+          <div class="tarot-card" id="tarotCard2">
+            <div class="tarot-card-inner">
+              <div class="tarot-card-front">
+                <div class="card-pattern">✦</div>
+                <div class="card-label">未来</div>
+              </div>
+              <div class="tarot-card-back">
+                <div class="card-number" id="tarotNum2"></div>
+                <div class="card-art" id="tarotArt2"></div>
+                <div class="card-name" id="tarotName2"></div>
+                <div class="card-meaning" id="tarotMeaning2"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="tarot-position-label" id="tarotStatus">点击下方按钮开始占卜</div>
+        <button class="draw-tarot-btn" id="drawTarotBtn" onclick="drawTarot()">🔮 抽取塔罗牌</button>
+      </div>
+
+      <!-- Numerology Sub-page -->
+      <div class="chart-sub-page" id="chart-numerology">
+        <div class="home-section-title"><span class="icon">🔢</span> 数字命理</div>
+        <div class="numerology-display">
+          <div class="glass-card num-card life">
+            <div class="num-circle" id="lifePathNum">6</div>
+            <div class="num-label">生命灵数</div>
+            <div class="num-name">和谐守护者</div>
+          </div>
+          <div class="glass-card num-card destiny">
+            <div class="num-circle" id="destinyNum">8</div>
+            <div class="num-label">命运数</div>
+            <div class="num-name">权力与成就</div>
+          </div>
+          <div class="glass-card num-card soul">
+            <div class="num-circle" id="soulNum">3</div>
+            <div class="num-label">灵魂驱动力</div>
+            <div class="num-name">创意表达</div>
+          </div>
+        </div>
+        <div class="glass-card">
+          <div class="home-section-title" style="margin-bottom:8px;"><span class="icon">📜</span> 数字解读</div>
+          <div style="font-size:13px;line-height:1.7;color:var(--text-secondary);">
+            <p style="margin-bottom:8px;"><strong style="color:var(--purple-light);">生命灵数 6</strong> — 你天生具有责任感和关怀精神，重视家庭与和谐。在人际关系中扮演调停者的角色，善于创造温馨的氛围。</p>
+            <p style="margin-bottom:8px;"><strong style="color:var(--gold-light);">命运数 8</strong> — 物质世界的掌控者，你有着强大的执行力和商业直觉。一生中会经历从无到有的蜕变，最终获得丰厚的物质回报。</p>
+            <p><strong style="color:var(--pink);">灵魂驱动力 3</strong> — 内心深处渴望创造和表达，艺术与沟通是你灵魂的养分。当你发挥创意时，会感到最充实和快乐。</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Human Design Sub-page -->
+      <div class="chart-sub-page" id="chart-humandesign">
+        <div class="home-section-title"><span class="icon">🧬</span> 人类图</div>
+        <div class="glass-card hd-type-card">
+          <div class="hd-type-icon">⚡</div>
+          <div class="hd-type-name" id="hdType">投射者</div>
+          <div class="hd-type-desc">你是一生的引导者，天生善于识别他人的潜能。不需要像显示者那样主动发起，而是通过等待邀请来发挥你的天赋。</div>
+        </div>
+        <div class="hd-info-grid">
+          <div class="glass-card hd-info-item">
+            <div class="hd-info-label">内在权威</div>
+            <div class="hd-info-value" id="hdAuthority">情绪权威</div>
+          </div>
+          <div class="glass-card hd-info-item">
+            <div class="hd-info-label">策略</div>
+            <div class="hd-info-value" id="hdStrategy">等待邀请</div>
+          </div>
+          <div class="glass-card hd-info-item">
+            <div class="hd-info-label">非自我主题</div>
+            <div class="hd-info-value" id="hdNotSelf">苦涩</div>
+          </div>
+          <div class="glass-card hd-info-item">
+            <div class="hd-info-label">签名</div>
+            <div class="hd-info-value" id="hdSignature">成功</div>
+          </div>
+        </div>
+        <div class="glass-card mt-12">
+          <div class="home-section-title" style="margin-bottom:8px;"><span class="icon">🔗</span> 活跃通道</div>
+          <div style="font-size:13px;line-height:1.6;color:var(--text-secondary);">
+            <div style="padding:8px 0;border-bottom:1px solid var(--border);"><strong style="color:var(--gold);">7-31 自我领导通道</strong> — 具有领导的直觉，能够在正确时机指引方向</div>
+            <div style="padding:8px 0;border-bottom:1px solid var(--border);"><strong style="color:var(--purple-light);">1-8 启发通道</strong> — 创造性的表达，以独特方式启迪他人</div>
+            <div style="padding:8px 0;"><strong style="color:var(--cyan);">13-33 倾听者通道</strong> — 善于倾听他人的故事，从中提炼智慧</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== AI MASTER PAGE ====== -->
+  <div class="tab-page" id="page-ai">
+    <div class="page-header">
+      <div>
+        <h1>AI 大师</h1>
+        <div class="subtitle">多引擎交叉验证 · 深度解读</div>
+      </div>
+      <div class="header-actions">
+        <div class="header-btn" onclick="clearChat()">🗑️</div>
+      </div>
+    </div>
+
+    <div class="ai-master-container">
+      <div class="engine-selector" id="engineSelector">
+        <div class="engine-tab active" data-engine="bazi" onclick="selectEngine('bazi')">八字</div>
+        <div class="engine-tab" data-engine="ziwei" onclick="selectEngine('ziwei')">紫微</div>
+        <div class="engine-tab" data-engine="astro" onclick="selectEngine('astro')">占星</div>
+        <div class="engine-tab" data-engine="tarot" onclick="selectEngine('tarot')">塔罗</div>
+        <div class="engine-tab" data-engine="numerology" onclick="selectEngine('numerology')">数字命理</div>
+      </div>
+
+      <div class="preset-questions" id="presetQuestions">
+        <div class="preset-q" onclick="askPresetQuestion('我今年的事业运势如何？')">
+          <span class="icon">💼</span> 我今年的事业运势如何？
+        </div>
+        <div class="preset-q" onclick="askPresetQuestion('我的正缘何时出现？')">
+          <span class="icon">💕</span> 我的正缘何时出现？
+        </div>
+        <div class="preset-q" onclick="askPresetQuestion('近期有什么需要注意的？')">
+          <span class="icon">⚠️</span> 近期有什么需要注意的？
+        </div>
+      </div>
+
+      <div class="chat-messages" id="chatMessages">
+        <div class="chat-bubble ai">
+          <div class="engine-tag">Fortune AI</div>
+          你好！我是 Fortune AI 大师，融合八字、紫微、占星、塔罗、数字命理五大体系，为你提供多维度交叉验证的命运解读。请问你想了解什么？
+        </div>
+      </div>
+
+      <div class="chat-input-area">
+        <input class="chat-input" id="chatInput" placeholder="输入你的问题..." onkeydown="if(event.key==='Enter')sendChat()">
+        <div class="send-btn" id="sendBtn" onclick="sendChat()">➤</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== REPORTS PAGE ====== -->
+  <div class="tab-page" id="page-reports">
+    <div class="page-header">
+      <div>
+        <h1>专业报告</h1>
+        <div class="subtitle">深度分析 · 专业解读</div>
+      </div>
+    </div>
+
+    <div class="tab-content">
+      <div class="reports-list" id="reportsList">
+        <div class="glass-card report-card bazi-report">
+          <div class="report-header">
+            <div class="report-icon">🏛️</div>
+            <div>
+              <div class="report-title">八字命盘详解</div>
+              <div class="report-meta">28页 · 八字体系</div>
+            </div>
+          </div>
+          <div class="report-desc">基于四柱八字全面分析命局格局、五行喜忌、十神配置，深入解读人生运势走向与关键节点。</div>
+          <div class="report-footer">
+            <div class="report-price">¥128 <span class="unit">/份</span></div>
+            <div class="buy-btn gold" onclick="buyReport('八字命盘详解', 128)">立即购买</div>
+          </div>
+        </div>
+
+        <div class="glass-card report-card ziwei-report">
+          <div class="report-header">
+            <div class="report-icon">⭐</div>
+            <div>
+              <div class="report-title">紫微斗数全解</div>
+              <div class="report-meta">35页 · 紫微体系</div>
+            </div>
+          </div>
+          <div class="report-desc">紫微十二宫位详尽解读，含命宫、财帛、事业、迁移等宫位星曜组合分析，预判十年大运走势。</div>
+          <div class="report-footer">
+            <div class="report-price">¥168 <span class="unit">/份</span></div>
+            <div class="buy-btn purple" onclick="buyReport('紫微斗数全解', 168)">立即购买</div>
+          </div>
+        </div>
+
+        <div class="glass-card report-card astro-report">
+          <div class="report-header">
+            <div class="report-icon">🌟</div>
+            <div>
+              <div class="report-title">占星本命盘报告</div>
+              <div class="report-meta">30页 · 占星体系</div>
+            </div>
+          </div>
+          <div class="report-desc">完整本命盘分析，涵盖太阳、月亮、上升及十大行星落位解读，宫位与相位关系全面剖析。</div>
+          <div class="report-footer">
+            <div class="report-price">¥148 <span class="unit">/份</span></div>
+            <div class="buy-btn gold" onclick="buyReport('占星本命盘报告', 148)">立即购买</div>
+          </div>
+        </div>
+
+        <div class="glass-card report-card tarot-report">
+          <div class="report-header">
+            <div class="report-icon">🃏</div>
+            <div>
+              <div class="report-title">塔罗深度解读</div>
+              <div class="report-meta">18页 · 塔罗体系</div>
+            </div>
+          </div>
+          <div class="report-desc">针对特定问题进行多牌阵塔罗解读，包含凯尔特十字牌阵，逐张分析牌面含义与组合暗示。</div>
+          <div class="report-footer">
+            <div class="report-price">¥88 <span class="unit">/份</span></div>
+            <div class="buy-btn purple" onclick="buyReport('塔罗深度解读', 88)">立即购买</div>
+          </div>
+        </div>
+
+        <div class="glass-card report-card comprehensive-report">
+          <div class="report-header">
+            <div class="report-icon">🔮</div>
+            <div>
+              <div class="report-title">全体系综合报告</div>
+              <div class="report-meta">60页 · 全体系融合</div>
+            </div>
+          </div>
+          <div class="report-desc">融合八字、紫微、占星、塔罗、数字命理五大体系，AI 交叉验证，生成最全面深度的命理综合报告。</div>
+          <div class="report-footer">
+            <div class="report-price">¥388 <span class="unit">/份</span></div>
+            <div class="buy-btn gold" onclick="buyReport('全体系综合报告', 388)">立即购买</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== PROFILE PAGE ====== -->
+  <div class="tab-page" id="page-profile">
+    <div class="page-header">
+      <div>
+        <h1>我的</h1>
+        <div class="subtitle">个人中心</div>
+      </div>
+      <div class="header-actions">
+        <div class="header-btn">⚙️</div>
+      </div>
+    </div>
+
+    <div class="tab-content">
+      <div class="profile-header-card glass-card">
+        <div class="profile-avatar">👤</div>
+        <div class="profile-name">命理探索者</div>
+        <div class="profile-id">ID: FORTUNE-19950615</div>
+      </div>
+
+      <div class="membership-card glass-card">
+        <div class="membership-header">
+          <div class="membership-tier">当前会员</div>
+          <div class="membership-badge free" id="membershipBadge">免费版</div>
+        </div>
+        <div class="membership-benefits">
+          • 每日运势基础解读<br>
+          • 八字命盘基础查看<br>
+          • AI 大师每日3次提问<br>
+          • 塔罗牌每日1次抽取
+        </div>
+        <button class="upgrade-btn" onclick="showUpgradeModal()">✦ 升级 Premium 会员</button>
+      </div>
+
+      <div class="glass-card" style="margin:0 20px 16px;padding:16px;">
+        <div class="home-section-title" style="margin-bottom:8px;"><span class="icon">👑</span> Premium 会员权益</div>
+        <div style="font-size:12px;color:var(--text-secondary);line-height:1.8;">
+          • 无限次 AI 大师提问<br>
+          • 全部命理体系深度解读<br>
+          • 每日塔罗无限抽取<br>
+          • 专业报告 8 折优惠<br>
+          • 优先体验新功能<br>
+          • 专属客服 1 对 1 服务
+        </div>
+      </div>
+
+      <div class="profile-menu">
+        <div class="menu-item" onclick="showToast('出生信息设置')">
+          <div class="menu-icon">🎂</div>
+          <div class="menu-text">出生信息设置</div>
+          <div class="menu-arrow">›</div>
+        </div>
+        <div class="menu-item" onclick="showToast('我的报告')">
+          <div class="menu-icon">📄</div>
+          <div class="menu-text">我的报告</div>
+          <div class="menu-arrow">›</div>
+        </div>
+        <div class="menu-item" onclick="showToast('历史记录')">
+          <div class="menu-icon">📋</div>
+          <div class="menu-text">历史记录</div>
+          <div class="menu-arrow">›</div>
+        </div>
+        <div class="menu-item" onclick="showToast('提醒设置')">
+          <div class="menu-icon">🔔</div>
+          <div class="menu-text">提醒设置</div>
+          <div class="menu-arrow">›</div>
+        </div>
+        <div class="menu-item" onclick="showToast('隐私与安全')">
+          <div class="menu-icon">🔒</div>
+          <div class="menu-text">隐私与安全</div>
+          <div class="menu-arrow">›</div>
+        </div>
+        <div class="menu-item" onclick="showToast('关于 Fortune AI')">
+          <div class="menu-icon">ℹ️</div>
+          <div class="menu-text">关于 Fortune AI</div>
+          <div class="menu-arrow">›</div>
+        </div>
+        <div class="menu-item" onclick="showToast('帮助与反馈')">
+          <div class="menu-icon">💬</div>
+          <div class="menu-text">帮助与反馈</div>
+          <div class="menu-arrow">›</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== BOTTOM TAB BAR ====== -->
+  <div class="bottom-tab-bar">
+    <div class="tab-item active" data-tab="home" onclick="switchTab('home')">
+      <div class="tab-icon">🏠</div>
+      <div class="tab-label">首页</div>
+    </div>
+    <div class="tab-item" data-tab="charts" onclick="switchTab('charts')">
+      <div class="tab-icon">📋</div>
+      <div class="tab-label">命盘</div>
+    </div>
+    <div class="tab-item center-tab" data-tab="ai" onclick="switchTab('ai')">
+      <div class="tab-icon">🔮</div>
+      <div class="tab-label">AI大师</div>
+    </div>
+    <div class="tab-item" data-tab="reports" onclick="switchTab('reports')">
+      <div class="tab-icon">📖</div>
+      <div class="tab-label">报告</div>
+    </div>
+    <div class="tab-item" data-tab="profile" onclick="switchTab('profile')">
+      <div class="tab-icon">👤</div>
+      <div class="tab-label">我的</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ==================== CONFIG ====================
+const API_BASE = '';
+const BIRTH_INFO = { year: 1995, month: 6, day: 15, hour: 14, gender: 'male' };
+
+// ==================== STATE ====================
+let currentTab = 'home';
+let currentChart = 'bazi';
+let currentEngine = 'bazi';
+let chatHistory = [];
+let isChatLoading = false;
+let dailyFortuneData = null;
+let tarotDrawn = false;
+
+// ==================== FALLBACK DATA ====================
+const FALLBACK_DAILY = {
+  overall_score: 78,
+  level: '吉星高照',
+  dimensions: {
+    career: { score: 82, desc: '贵人相助，事业顺遂' },
+    love: { score: 70, desc: '感情平稳，宜多沟通' },
+    wealth: { score: 85, desc: '财运亨通，投资有利' },
+    health: { score: 75, desc: '注意休息，劳逸结合' }
+  },
+  lucky: { number: '3、8', color: '金色', direction: '东南', time: '巳时(9-11时)' },
+  advice: '今日运势整体向好，事业方面有贵人相助，适合推进重要项目。财运表现突出，可关注投资理财机会。感情上建议多花时间陪伴伴侣，增进彼此理解。健康方面注意作息规律，避免过度劳累。八字五行今日木旺，适合与绿色植物接触，有助于平衡五行能量。紫微命盘显示今日天机星动，思维活跃，适合做决策。占星角度，月亮落入天秤座，有利于人际关系和合作事务。综合来看，今日宜积极行动，把握机遇。'
+};
+
+const FALLBACK_BAZI = {
+  pillars: [
+    { stem: '乙', branch: '亥', element: '木', elementColor: 'var(--green)' },
+    { stem: '壬', branch: '午', element: '火', elementColor: 'var(--red)' },
+    { stem: '甲', branch: '寅', element: '木', elementColor: 'var(--green)' },
+    { stem: '辛', branch: '未', element: '金', elementColor: '#e5e7eb' }
+  ],
+  five_elements: { wood: 3, fire: 2, earth: 1, metal: 1, water: 1 },
+  day_master: { symbol: '甲', name: '甲木 · 阳木', desc: '甲木参天，如大树般挺拔，具有领导才能和开创精神。为人正直，志向远大，但有时过于刚直。' },
+  major_cycles: [
+    { age: '25-34岁', pillars: '戊戌', element: '土', desc: '事业上升期', current: true },
+    { age: '15-24岁', pillars: '己酉', element: '土', desc: '学业积累期', current: false },
+    { age: '35-44岁', pillars: '己亥', element: '土', desc: '财运旺盛期', current: false },
+    { age: '45-54岁', pillars: '庚子', element: '金', desc: '稳健发展期', current: false }
+  ]
+};
+
+const TAROT_CARDS = [
+  { number: '0', name: '愚者', art: '🃏', meaning: '新开始，无限可能' },
+  { number: 'I', name: '魔术师', art: '🎩', meaning: '创造力，意志力' },
+  { number: 'II', name: '女祭司', art: '🌙', meaning: '直觉，潜意识' },
+  { number: 'III', name: '女皇', art: '👑', meaning: '丰饶，母性' },
+  { number: 'IV', name: '皇帝', art: '🏛️', meaning: '权威，秩序' },
+  { number: 'V', name: '教皇', art: '⛪', meaning: '信仰，传统' },
+  { number: 'VI', name: '恋人', art: '💕', meaning: '选择，结合' },
+  { number: 'VII', name: '战车', art: '⚔️', meaning: '胜利，意志' },
+  { number: 'VIII', name: '力量', art: '🦁', meaning: '勇气，内力' },
+  { number: 'IX', name: '隐者', art: '🏔️', meaning: '内省，智慧' },
+  { number: 'X', name: '命运之轮', art: '🎡', meaning: '转变，机遇' },
+  { number: 'XI', name: '正义', art: '⚖️', meaning: '公正，因果' },
+  { number: 'XII', name: '倒吊人', art: '🔄', meaning: '牺牲，等待' },
+  { number: 'XIII', name: '死神', art: '🦋', meaning: '结束，重生' },
+  { number: 'XIV', name: '节制', art: '🏺', meaning: '平衡，调和' },
+  { number: 'XV', name: '恶魔', art: '🔗', meaning: '束缚，欲望' },
+  { number: 'XVI', name: '高塔', art: '⚡', meaning: '突变，觉醒' },
+  { number: 'XVII', name: '星星', art: '⭐', meaning: '希望，灵感' },
+  { number: 'XVIII', name: '月亮', art: '🌕', meaning: '幻觉，不安' },
+  { number: 'XIX', name: '太阳', art: '☀️', meaning: '成功，喜悦' },
+  { number: 'XX', name: '审判', art: '📯', meaning: '觉醒，复苏' },
+  { number: 'XXI', name: '世界', art: '🌍', meaning: '圆满，成就' }
+];
+
+const AI_RESPONSES = {
+  career: {
+    bazi: '从八字命理来看，你日主甲木，得寅月之助，身旺有力。今年流年与命局形成食伤生财的组合，事业运势稳步上升。特别是在夏季和秋季，会有重要的贵人出现，助力你的职业发展。建议把握3-5月的黄金期，积极争取晋升或跳槽机会。',
+    ziwei: '紫微斗数显示，今年事业宫有天机和太阴同度，思维灵活且善于策划。命宫武曲化权，执行力增强，适合主导重要项目。但需注意紫微化科带来的名誉压力，做事需更加谨慎，避免因疏忽影响声誉。',
+    astro: '从占星角度分析，今年木星落入第十宫（事业宫），带来扩张和机遇的能量。土星在第六宫提醒你注重工作细节和团队协作。水星逆行期间（4月和8月）需避免签署重要合同。',
+    tarot: '塔罗牌阵显示，事业方面出现了力量牌和太阳牌的组合，这是非常积极的信号。暗示你有足够的能力和信心克服当前的挑战。但倒吊人出现在阻碍位置，提示你有时候需要换个角度看问题。',
+    numerology: '你的生命灵数6，今年处于个人年数8的阶段，这是一个关于权力、成就和物质回报的年份。命运数8与个人年数8共振，事业能量极强。建议大胆设定职业目标，这一年你的付出将获得丰厚回报。'
+  },
+  love: {
+    bazi: '八字中日支寅木为偏财星，暗示你在感情中容易遇到性格独立、有主见的对象。今年桃花星暗动，尤其在农历三月和九月，感情机遇增多。但需注意食伤过旺可能导致对伴侣要求过高，适当降低期待反而容易收获惊喜。',
+    ziwei: '紫微命盘中夫妻宫有天梁星坐守，你倾向于寻找成熟稳重的伴侣。今年红鸾星动，单身者有机会在社交场合遇到心仪对象。已有伴侣者，天梁化科带来智慧与包容，适合共同规划未来。',
+    astro: '金星落入巨蟹座，在感情中你渴望安全感和归属感。今年日月食落在你的感情轴线上，预示着重要的情感转变。5月和11月是感情的关键月份，单身者可能遇到命中注定的人，有伴者关系将更加深入。',
+    tarot: '恋人牌出现在中心位置，这是强有力的爱情信号。但恶魔牌在阻碍位提醒你，需要释放对过去感情的执念。星星牌在结果位置，预示着一段充满希望和灵感的新恋情即将到来。',
+    numerology: '生命灵数6的你天生重视爱情与家庭，今年个人年数8带来务实的感情观。灵魂驱动力3让你在亲密关系中渴望深度沟通。综合来看，今年适合认真对待感情，建立稳定的关系基础。'
+  },
+  caution: {
+    bazi: '八字命局中水偏弱，今年需特别注意肾脏、泌尿系统的健康。五行水弱也意味着情绪调节能力下降，建议多亲近水源，游泳或泡温泉有助平衡。事业方面避免与人发生口角，食伤旺容易言多必失。',
+    ziwei: '紫微盘中疾厄宫有天同星，体质偏寒湿，今年尤其要注意脾胃保养。迁移宫化忌，出行需格外小心，尤其避免夜间长途驾驶。财帛宫虽有吉星，但不可贪大求全，稳扎稳打为宜。',
+    astro: '土星在第六宫带来健康考验，需建立规律的运动和作息习惯。火星逆行期间（10-11月）避免高强度运动，容易受伤。水星逆行期间注意沟通误会，签署文件需反复确认。',
+    tarot: '高塔牌出现，提示近期可能有突如其来的变故，但这是打破旧有模式的机会。节制牌建议你保持内心平衡，不要过度反应。月亮牌暗示有些事情并非表面所见，做重大决定前需深入了解真相。',
+    numerology: '今年个人年数8虽然事业运强，但也带来极大的工作压力。灵魂驱动力3提醒你不要忽视内心的创意需求，适当的艺术活动和休闲对维持心理平衡至关重要。健康方面注意脊椎和骨骼问题。'
+  }
+};
+
+// ==================== UTILITY FUNCTIONS ====================
+function showToast(msg) {
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.textContent = msg;
+  container.appendChild(toast);
+  setTimeout(() => { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 3000);
+}
+
+function showModal(title, body, onConfirm) {
+  document.getElementById('modalTitle').textContent = title;
+  document.getElementById('modalBody').textContent = body;
+  const confirmBtn = document.getElementById('modalConfirmBtn');
+  confirmBtn.onclick = () => { closeModal(); if (onConfirm) onConfirm(); };
+  document.getElementById('modalOverlay').classList.add('show');
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('show');
+}
+
+async function apiCall(endpoint, method, body) {
+  try {
+    const opts = {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+    };
+    if (body) opts.body = JSON.stringify(body);
+    const res = await fetch(API_BASE + endpoint, opts);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  } catch (e) {
+    console.warn('API call failed:', endpoint, e);
+    return null;
+  }
+}
+
+// ==================== TAB NAVIGATION ====================
+function switchTab(tab) {
+  currentTab = tab;
+  // Update tab pages
+  document.querySelectorAll('.tab-page').forEach(p => p.classList.remove('active'));
+  const pageMap = { home: 'page-home', charts: 'page-charts', ai: 'page-ai', reports: 'page-reports', profile: 'page-profile' };
+  document.getElementById(pageMap[tab]).classList.add('active');
+  // Update tab bar
+  document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+  document.querySelector(`.tab-item[data-tab="${tab}"]`).classList.add('active');
+  // Scroll to top
+  const content = document.querySelector(`#${pageMap[tab]} .tab-content`);
+  if (content) content.scrollTop = 0;
+  // Trigger data load
+  if (tab === 'charts' && !window.chartsLoaded) { loadChartData(); window.chartsLoaded = true; }
+  if (tab === 'reports' && !window.reportsLoaded) { loadReports(); window.reportsLoaded = true; }
+}
+
+// ==================== HOME PAGE ====================
+async function loadDailyFortune() {
+  const data = await apiCall('/api/v1/fortune/daily', 'POST', BIRTH_INFO);
+  const fortune = data || FALLBACK_DAILY;
+  dailyFortuneData = fortune;
+  renderDailyFortune(fortune);
+}
+
+function renderDailyFortune(fortune) {
+  // Overall score ring
+  const score = fortune.overall_score || 0;
+  const circumference = 2 * Math.PI * 65; // ~408
+  const offset = circumference - (circumference * score / 100);
+  document.getElementById('overallScore').textContent = score;
+
+  setTimeout(() => {
+    document.getElementById('scoreRingProgress').style.strokeDashoffset = offset;
+    document.getElementById('scoreRingGlow').style.strokeDashoffset = offset;
+  }, 100);
+
+  // Level
+  document.getElementById('fortuneLevel').textContent = fortune.level || getLevelText(score);
+
+  // Dimensions
+  const dims = fortune.dimensions || {};
+  renderDimension('career', dims.career);
+  renderDimension('love', dims.love);
+  renderDimension('wealth', dims.wealth);
+  renderDimension('health', dims.health);
+
+  // AI Advice
+  const advice = fortune.advice || FALLBACK_DAILY.advice;
+  typeText(document.getElementById('aiAdviceText'), advice, 25);
+
+  // Lucky elements
+  const lucky = fortune.lucky || FALLBACK_DAILY.lucky;
+  document.getElementById('luckyNumber').textContent = lucky.number;
+  document.getElementById('luckyColor').textContent = lucky.color;
+  document.getElementById('luckyDirection').textContent = lucky.direction;
+  document.getElementById('luckyTime').textContent = lucky.time;
+}
+
+function renderDimension(name, data) {
+  if (!data) data = FALLBACK_DAILY.dimensions[name];
+  const score = data.score || 0;
+  const miniCircumference = 2 * Math.PI * 20; // ~126
+  const miniOffset = miniCircumference - (miniCircumference * score / 100);
+  document.getElementById(`${name}Score`).textContent = score;
+  document.getElementById(`${name}Desc`).textContent = data.desc || '';
+  setTimeout(() => {
+    document.getElementById(`${name}Ring`).style.strokeDashoffset = miniOffset;
+  }, 200);
+}
+
+function getLevelText(score) {
+  if (score >= 90) return '大吉大利';
+  if (score >= 80) return '吉星高照';
+  if (score >= 70) return '运势良好';
+  if (score >= 60) return '平稳度过';
+  if (score >= 50) return '小有波折';
+  return '需多注意';
+}
+
+function typeText(element, text, speed) {
+  element.innerHTML = '';
+  let i = 0;
+  function type() {
+    if (i < text.length) {
+      element.innerHTML = text.substring(0, i + 1) + '<span class="cursor-blink"></span>';
+      i++;
+      setTimeout(type, speed);
+    } else {
+      element.innerHTML = text;
+    }
+  }
+  type();
+}
+
+function refreshDailyFortune() {
+  document.getElementById('scoreRingProgress').style.strokeDashoffset = 408;
+  document.getElementById('scoreRingGlow').style.strokeDashoffset = 408;
+  document.getElementById('overallScore').textContent = '--';
+  document.getElementById('fortuneLevel').textContent = '加载中...';
+  document.getElementById('aiAdviceText').innerHTML = '<div class="loading-dots"><span></span><span></span><span></span></div>';
+  showToast('正在刷新运势...');
+  setTimeout(() => loadDailyFortune(), 500);
+}
+
+// ==================== CHARTS PAGE ====================
+function switchChart(chart) {
+  currentChart = chart;
+  document.querySelectorAll('.chart-tab').forEach(t => t.classList.remove('active'));
+  document.querySelector(`.chart-tab[data-chart="${chart}"]`).classList.add('active');
+  document.querySelectorAll('.chart-sub-page').forEach(p => p.classList.remove('active'));
+  document.getElementById(`chart-${chart}`).classList.add('active');
+
+  // Trigger animations
+  if (chart === 'bazi') animateFiveElements();
+}
+
+async function loadChartData() {
+  const data = await apiCall('/api/v1/fortune/chart', 'POST', { ...BIRTH_INFO, engine: 'bazi' });
+  if (data) renderBaziData(data);
+  else renderBaziData(FALLBACK_BAZI);
+  animateFiveElements();
+}
+
+function renderBaziData(data) {
+  const bazi = data || FALLBACK_BAZI;
+  const pillars = bazi.pillars || FALLBACK_BAZI.pillars;
+  const labels = ['year', 'month', 'day', 'hour'];
+  const pillarNames = ['年柱', '月柱', '日柱', '时柱'];
+
+  labels.forEach((label, i) => {
+    const p = pillars[i];
+    document.getElementById(`${label}Stem`).textContent = p.stem;
+    document.getElementById(`${label}Branch`).textContent = p.branch;
+    const elEl = document.getElementById(`${label}Element`);
+    elEl.textContent = p.element;
+    const colorMap = { '木': ['var(--green-dim)', 'var(--green)'], '火': ['var(--red-dim)', 'var(--red)'], '土': ['var(--gold-dim)', 'var(--gold)'], '金': ['#e5e7eb33', '#e5e7eb'], '水': ['var(--blue-dim)', 'var(--blue)'] };
+    const colors = colorMap[p.element] || ['var(--bg-card)', 'var(--text-secondary)'];
+    elEl.style.background = colors[0];
+    elEl.style.color = colors[1];
+  });
+
+  // Day master
+  if (bazi.day_master) {
+    document.getElementById('dayMasterSymbol').textContent = bazi.day_master.symbol;
+    document.getElementById('dayMasterName').textContent = bazi.day_master.name;
+    document.getElementById('dayMasterDesc').textContent = bazi.day_master.desc;
+  }
+
+  // Five elements
+  if (bazi.five_elements) {
+    const fe = bazi.five_elements;
+    const bars = document.querySelectorAll('.element-bar');
+    const values = document.querySelectorAll('.element-bar-value');
+    const elementKeys = ['wood', 'fire', 'earth', 'metal', 'water'];
+    const maxVal = Math.max(...elementKeys.map(k => fe[k] || 0), 1);
+    elementKeys.forEach((key, i) => {
+      const val = fe[key] || 0;
+      values[i].textContent = val;
+      bars[i].setAttribute('data-height', Math.round((val / maxVal) * 100));
+    });
+  }
+
+  // Cycles
+  if (bazi.major_cycles) {
+    const container = document.getElementById('cyclesTimeline');
+    container.innerHTML = '';
+    bazi.major_cycles.forEach(cycle => {
+      const item = document.createElement('div');
+      item.className = `cycle-item${cycle.current ? ' current' : ''}`;
+      item.innerHTML = `
+        <div class="cycle-age">${cycle.age}${cycle.current ? ' · 当前大运' : ''}</div>
+        <div class="cycle-pillars">${cycle.pillars}</div>
+        <div class="cycle-element">${cycle.element} · ${cycle.desc}</div>
+      `;
+      container.appendChild(item);
+    });
+  }
+}
+
+function animateFiveElements() {
+  setTimeout(() => {
+    document.querySelectorAll('.element-bar').forEach(bar => {
+      const h = bar.getAttribute('data-height') || 25;
+      bar.style.height = h + 'px';
+    });
+  }, 200);
+}
+
+// ==================== TAROT ====================
+function drawTarot() {
+  if (tarotDrawn) return;
+  tarotDrawn = true;
+  const btn = document.getElementById('drawTarotBtn');
+  btn.disabled = true;
+  btn.textContent = '🔮 占卜中...';
+  document.getElementById('tarotStatus').textContent = '正在为你抽牌...';
+
+  // Try API first
+  apiCall('/api/v1/fortune/tarot', 'POST', { question: '今日运势', ...BIRTH_INFO }).then(data => {
+    if (data && data.cards) {
+      renderTarotCards(data.cards);
+    } else {
+      // Fallback: pick 3 random cards
+      const shuffled = [...TAROT_CARDS].sort(() => Math.random() - 0.5);
+      const selected = shuffled.slice(0, 3);
+      renderTarotCards(selected);
+    }
+  });
+}
+
+function renderTarotCards(cards) {
+  const positions = ['过去', '现在', '未来'];
+  cards.forEach((card, i) => {
+    const cardEl = document.getElementById(`tarotCard${i}`);
+    document.getElementById(`tarotNum${i}`).textContent = card.number || '';
+    document.getElementById(`tarotArt${i}`).textContent = card.art || '🃏';
+    document.getElementById(`tarotName${i}`).textContent = card.name || '';
+    document.getElementById(`tarotMeaning${i}`).textContent = card.meaning || '';
+
+    // Flip with delay
+    setTimeout(() => {
+      cardEl.classList.add('flipped');
+    }, 600 + i * 500);
+  });
+
+  setTimeout(() => {
+    document.getElementById('tarotStatus').textContent = '牌面已揭示，点击卡片查看详情';
+  }, 2500);
+
+  // Reset after a while
+  setTimeout(() => {
+    tarotDrawn = false;
+    const btn = document.getElementById('drawTarotBtn');
+    btn.disabled = false;
+    btn.textContent = '🔮 重新抽取';
+  }, 5000);
+}
+
+function drawTarotFromHome() {
+  switchTab('charts');
+  setTimeout(() => switchChart('tarot'), 100);
+}
+
+// ==================== AI MASTER ====================
+function selectEngine(engine) {
+  currentEngine = engine;
+  document.querySelectorAll('.engine-tab').forEach(t => t.classList.remove('active'));
+  document.querySelector(`.engine-tab[data-engine="${engine}"]`).classList.add('active');
+}
+
+function askPresetQuestion(question) {
+  document.getElementById('chatInput').value = question;
+  sendChat();
+}
+
+async function sendChat() {
+  const input = document.getElementById('chatInput');
+  const question = input.value.trim();
+  if (!question || isChatLoading) return;
+
+  input.value = '';
+  isChatLoading = true;
+  document.getElementById('sendBtn').style.opacity = '0.4';
+
+  // Add user message
+  addChatBubble(question, 'user');
+  chatHistory.push({ role: 'user', content: question });
+
+  // Hide preset questions after first message
+  document.getElementById('presetQuestions').style.display = 'none';
+
+  // Add loading indicator
+  const loadingId = 'loading-' + Date.now();
+  addLoadingBubble(loadingId);
+
+  // Determine which AI response to use
+  let responseType = 'career';
+  if (question.includes('事业') || question.includes('工作') || question.includes('职场')) responseType = 'career';
+  else if (question.includes('感情') || question.includes('爱情') || question.includes('缘')) responseType = 'love';
+  else if (question.includes('注意') || question.includes('小心') || question.includes('避忌')) responseType = 'caution';
+
+  // Try API
+  const data = await apiCall('/api/v1/ai/chat', 'POST', {
+    question,
+    engines: [currentEngine],
+    ...BIRTH_INFO
+  });
+
+  // Remove loading
+  const loadingEl = document.getElementById(loadingId);
+  if (loadingEl) loadingEl.remove();
+
+  if (data && data.response) {
+    addAIBubble(data.response, currentEngine, data.cross_validation);
+  } else {
+    // Fallback
+    const response = AI_RESPONSES[responseType][currentEngine] || AI_RESPONSES.career[currentEngine];
+    const crossValidation = {};
+    Object.keys(AI_RESPONSES[responseType]).forEach(eng => {
+      if (eng !== currentEngine) {
+        crossValidation[eng] = AI_RESPONSES[responseType][eng];
+      }
+    });
+    addAIBubble(response, currentEngine, crossValidation);
+  }
+
+  isChatLoading = false;
+  document.getElementById('sendBtn').style.opacity = '1';
+}
+
+function addChatBubble(text, type) {
+  const container = document.getElementById('chatMessages');
+  const bubble = document.createElement('div');
+  bubble.className = `chat-bubble ${type}`;
+  bubble.textContent = text;
+  container.appendChild(bubble);
+  container.scrollTop = container.scrollHeight;
+}
+
+function addLoadingBubble(id) {
+  const container = document.getElementById('chatMessages');
+  const bubble = document.createElement('div');
+  bubble.className = 'chat-bubble ai';
+  bubble.id = id;
+  bubble.innerHTML = '<div class="loading-dots"><span></span><span></span><span></span></div>';
+  container.appendChild(bubble);
+  container.scrollTop = container.scrollHeight;
+}
+
+function addAIBubble(text, engine, crossValidation) {
+  const container = document.getElementById('chatMessages');
+  const bubble = document.createElement('div');
+  bubble.className = 'chat-bubble ai';
+
+  const engineNames = { bazi: '八字', ziwei: '紫微', astro: '占星', tarot: '塔罗', numerology: '数字命理' };
+
+  let html = `<div class="engine-tag">${engineNames[engine] || engine}解读</div>`;
+  html += `<div class="ai-response-text"></div>`;
+
+  if (crossValidation && Object.keys(crossValidation).length > 0) {
+    const engines = Object.keys(crossValidation);
+    html += `<div class="cross-validation">`;
+    html += `<div style="font-size:11px;color:var(--gold);margin-bottom:6px;">✦ 交叉验证</div>`;
+    html += `<div class="cv-tabs">`;
+    engines.forEach((eng, i) => {
+      html += `<div class="cv-tab${i === 0 ? ' active' : ''}" onclick="switchCvTab(this, '${eng}')">${engineNames[eng] || eng}</div>`;
+    });
+    html += `</div>`;
+    engines.forEach((eng, i) => {
+      html += `<div class="cv-content" id="cv-${eng}" style="${i !== 0 ? 'display:none' : ''}">${crossValidation[eng]}</div>`;
+    });
+    html += `</div>`;
+  }
+
+  bubble.innerHTML = html;
+  container.appendChild(bubble);
+
+  // Streaming text effect
+  const textEl = bubble.querySelector('.ai-response-text');
+  streamText(textEl, text);
+
+  container.scrollTop = container.scrollHeight;
+  chatHistory.push({ role: 'assistant', content: text, engine });
+}
+
+function streamText(element, text) {
+  let i = 0;
+  const speed = 20;
+  function type() {
+    if (i < text.length) {
+      element.innerHTML = text.substring(0, i + 1) + '<span class="streaming-cursor"></span>';
+      i++;
+      setTimeout(type, speed);
+    } else {
+      element.innerHTML = text;
+    }
+  }
+  type();
+}
+
+function switchCvTab(tabEl, engine) {
+  const parent = tabEl.closest('.cross-validation');
+  parent.querySelectorAll('.cv-tab').forEach(t => t.classList.remove('active'));
+  tabEl.classList.add('active');
+  parent.querySelectorAll('.cv-content').forEach(c => c.style.display = 'none');
+  const content = document.getElementById(`cv-${engine}`);
+  if (content) content.style.display = 'block';
+}
+
+function clearChat() {
+  if (chatHistory.length === 0) return;
+  showModal('清空对话', '确定要清空所有对话记录吗？', () => {
+    document.getElementById('chatMessages').innerHTML = `
+      <div class="chat-bubble ai">
+        <div class="engine-tag">Fortune AI</div>
+        你好！我是 Fortune AI 大师，融合八字、紫微、占星、塔罗、数字命理五大体系，为你提供多维度交叉验证的命运解读。请问你想了解什么？
+      </div>
+    `;
+    chatHistory = [];
+    document.getElementById('presetQuestions').style.display = 'block';
+    showToast('对话已清空');
+  });
+}
+
+// ==================== REPORTS ====================
+async function loadReports() {
+  const data = await apiCall('/api/v1/reports/types', 'GET');
+  if (data && data.reports) {
+    renderReports(data.reports);
+  }
+  // Fallback: already rendered in HTML
+}
+
+function renderReports(reports) {
+  const container = document.getElementById('reportsList');
+  container.innerHTML = '';
+  reports.forEach(report => {
+    const card = document.createElement('div');
+    card.className = 'glass-card report-card';
+    card.innerHTML = `
+      <div class="report-header">
+        <div class="report-icon">${report.icon || '📄'}</div>
+        <div>
+          <div class="report-title">${report.title}</div>
+          <div class="report-meta">${report.pages}页 · ${report.system}</div>
+        </div>
+      </div>
+      <div class="report-desc">${report.description}</div>
+      <div class="report-footer">
+        <div class="report-price">¥${report.price} <span class="unit">/份</span></div>
+        <div class="buy-btn gold" onclick="buyReport('${report.title}', ${report.price})">立即购买</div>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+function buyReport(title, price) {
+  showModal('购买报告', `确定购买「${title}」吗？价格 ¥${price}`, () => {
+    showToast('订单已提交，正在生成报告...');
+  });
+}
+
+function refreshChart() {
+  showToast('正在刷新命盘数据...');
+  loadChartData();
+}
+
+// ==================== PROFILE ====================
+function showUpgradeModal() {
+  showModal('升级 Premium', 'Premium 会员 ¥29.9/月，解锁全部功能与无限次 AI 解读。是否立即订阅？', () => {
+    showToast('已提交订阅请求');
+    document.getElementById('membershipBadge').textContent = 'Premium';
+    document.getElementById('membershipBadge').className = 'membership-badge premium';
+  });
+}
+
+// ==================== INITIALIZATION ====================
+function updateStatusTime() {
+  const now = new Date();
+  const h = now.getHours();
+  const m = now.getMinutes().toString().padStart(2, '0');
+  document.getElementById('statusTime').textContent = `${h}:${m}`;
+}
+
+function init() {
+  updateStatusTime();
+  setInterval(updateStatusTime, 60000);
+
+  // Load daily fortune
+  loadDailyFortune();
+
+  // Preload chart data
+  loadChartData();
+
+  // Animate five elements bars after a short delay
+  setTimeout(animateFiveElements, 800);
+
+  // Handle back gesture on charts
+  document.querySelectorAll('.palace-cell').forEach(cell => {
+    cell.addEventListener('click', () => {
+      const name = cell.querySelector('.palace-name')?.textContent;
+      if (name && !cell.classList.contains('center-cell')) {
+        showToast(`${name}宫位详情`);
+      }
+    });
+  });
+}
+
+// Wait for DOM
+document.addEventListener('DOMContentLoaded', init);
+
+// Handle visibility change - refresh when app comes back
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && currentTab === 'home') {
+    // Optionally refresh data
+  }
+});
+</script>
+</body>
+</html>
