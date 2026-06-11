@@ -2,67 +2,38 @@ name: Build Android APK
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 jobs:
   build:
+    name: Build APK
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Set up JDK 17
-      uses: actions/setup-java@v4
-      with:
-        java-version: '17'
-        distribution: 'temurin'
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.29.3'
+          channel: 'stable'
 
-    - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v3
+      - name: Install dependencies
+        run: flutter pub get
 
-    - name: Grant execute permission for gradlew
-      run: chmod +x android/gradlew || true
+      - name: Build APK
+        run: flutter build apk --release --no-tree-shake
 
-    - name: Generate Gradle Wrapper
-      working-directory: android
-      run: |
-        gradle wrapper --gradle-version 8.2
+      - name: Rename APK
+        run: mv build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/fortune-ai-v1.0.0.apk
 
-    - name: Copy web app to Android assets
-      run: |
-        mkdir -p android/app/src/main/assets
-        cp static/index.html android/app/src/main/assets/index.html
-        echo "Assets copied successfully"
-        ls -la android/app/src/main/assets/
-
-    - name: Build Debug APK
-      working-directory: android
-      run: ./gradlew assembleDebug --stacktrace
-
-    - name: Build Release APK (unsigned)
-      working-directory: android
-      run: ./gradlew assembleRelease --stacktrace
-
-    - name: Upload Debug APK
-      uses: actions/upload-artifact@v4
-      with:
-        name: Fortune-AI-debug
-        path: android/app/build/outputs/apk/debug/*.apk
-
-    - name: Upload Release APK
-      uses: actions/upload-artifact@v4
-      with:
-        name: Fortune-AI-release
-        path: android/app/build/outputs/apk/release/*.apk
-
-    - name: Create Release
-      if: startsWith(github.ref, 'refs/tags/')
-      uses: softprops/action-gh-release@v1
-      with:
-        files: |
-          android/app/build/outputs/apk/debug/*.apk
-          android/app/build/outputs/apk/release/*.apk
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: fortune-ai-apk
+          path: build/app/outputs/flutter-apk/fortune-ai-v1.0.0.apk
+          retention-days: 30
