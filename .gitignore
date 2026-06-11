@@ -38,3 +38,11 @@ node_modules/
 
 # Cache
 .cache/
+
+# Android build
+android/.gradle/
+android/app/build/
+android/build/
+
+# Gradle
+.gradle/

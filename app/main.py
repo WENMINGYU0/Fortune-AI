@@ -15,14 +15,21 @@ from app.api.reports import router as reports_router
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """应用生命周期"""
-    print(f"🔮 {settings.APP_NAME} v{settings.APP_VERSION} 启动中...")
-    print(f"🤖 DeepSeek Model: {settings.DEEPSEEK_MODEL}")
-    print(f"🌐 API Docs: http://{settings.HOST}:{settings.PORT}/docs")
+    import sys
+    try:
+        print(f"[Fortune AI] {settings.APP_NAME} v{settings.APP_VERSION} starting...")
+        print(f"[Fortune AI] DeepSeek Model: {settings.DEEPSEEK_MODEL}")
+        print(f"[Fortune AI] API Docs: http://{settings.HOST}:{settings.PORT}/docs")
+    except UnicodeEncodeError:
+        pass
     yield
     # 清理
     from app.ai.deepseek import deepseek_client
     await deepseek_client.close()
-    print(f"🔮 {settings.APP_NAME} 已关闭")
+    try:
+        print(f"[Fortune AI] {settings.APP_NAME} shutdown")
+    except UnicodeEncodeError:
+        pass
 
 
 app = FastAPI(
