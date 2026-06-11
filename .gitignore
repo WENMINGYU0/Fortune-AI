@@ -1,48 +1,28 @@
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-*.egg-info/
-dist/
+# Flutter
+.dart_tool/
+.packages
 build/
-.eggs/
+.flutter-plugins
+.flutter-plugins-dependencies
+*.iml
+*.lock
 
-# Virtual Environment
-venv/
-env/
-.venv/
+# Android
+android/local.properties
+android/app/build/
+android/.gradle/
+android/captures/
+android/key.properties
+*.jks
+*.keystore
 
 # IDE
-.vscode/
 .idea/
+.vscode/
 *.swp
 *.swo
-
-# Environment
-.env
-
-# Database
-*.db
-*.sqlite3
-
-# OS
 .DS_Store
-Thumbs.db
 
-# Logs
+# Misc
+.env
 *.log
-
-# Node
-node_modules/
-
-# Cache
-.cache/
-
-# Android build
-android/.gradle/
-android/app/build/
-android/build/
-
-# Gradle
-.gradle/

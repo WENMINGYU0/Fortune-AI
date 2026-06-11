@@ -1,0 +1,33 @@
+name: fortune_ai
+description: 命理AI - 智能命理分析与运势预测
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.2.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.6
+  http: ^1.1.2
+  shared_preferences: ^2.2.2
+  intl: ^0.19.0
+  google_fonts: ^6.1.0
+  flutter_svg: ^2.0.9
+  shimmer: ^3.0.0
+  lottie: ^2.7.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.1
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
+  fonts:
+    - family: FortuneIcons
+      fonts:
+        - asset: assets/fonts/FortuneIcons.ttf

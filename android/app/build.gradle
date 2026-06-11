@@ -1,44 +1,59 @@
 plugins {
-    id 'com.android.application'
+    id "com.android.application"
+    id "kotlin-android"
+    id "dev.flutter.flutter-gradle-plugin"
+}
+
+def localProperties = new Properties()
+def localPropertiesFile = rootProject.file("local.properties")
+if (localPropertiesFile.exists()) {
+    localPropertiesFile.withReader("UTF-8") { reader ->
+        localProperties.load(reader)
+    }
+}
+
+def flutterVersionCode = localProperties.getProperty("flutter.versionCode")
+if (flutterVersionCode == null) {
+    flutterVersionCode = "1"
+}
+
+def flutterVersionName = localProperties.getProperty("flutter.versionName")
+if (flutterVersionName == null) {
+    flutterVersionName = "1.0"
 }
 
 android {
-    namespace 'com.fortuneai'
-    compileSdk 34
+    namespace = "com.fortuneai.app"
+    compileSdk = 34
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_1_8
+    }
+
+    sourceSets {
+        main.java.srcDirs += "src/main/kotlin"
+    }
 
     defaultConfig {
-        applicationId "com.fortuneai"
-        minSdk 24
-        targetSdk 34
-        versionCode 1
-        versionName "1.0.0"
+        applicationId = "com.fortuneai.app"
+        minSdk = 21
+        targetSdk = 34
+        versionCode = flutterVersionCode.toInteger()
+        versionName = flutterVersionName
     }
 
     buildTypes {
         release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-        }
-        debug {
-            debuggable true
-        }
-    }
-
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_11
-        targetCompatibility JavaVersion.VERSION_11
-    }
-
-    // 确保从 assets 加载本地文件
-    sourceSets {
-        main {
-            assets.srcDirs = ['src/main/assets']
+            signingConfig = signingConfigs.debug
         }
     }
 }
 
-dependencies {
-    implementation 'androidx.appcompat:appcompat:1.6.1'
-    implementation 'androidx.webkit:webkit:1.9.0'
-    implementation 'com.google.android.material:material:1.11.0'
+flutter {
+    source = "../.."
 }
