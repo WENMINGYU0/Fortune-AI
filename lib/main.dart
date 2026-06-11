@@ -4,6 +4,7 @@ import 'services/storage_service.dart';
 import 'screens/home/home_screen.dart';
 import 'screens/chat/chat_screen.dart';
 import 'screens/chart/chart_screens.dart';
+import 'screens/daily/daily_screen.dart';
 import 'screens/profile/profile_screen.dart';
 
 void main() async {
@@ -37,12 +38,12 @@ class MainShell extends StatefulWidget {
 class _MainShellState extends State<MainShell> {
   int _currentIndex = 0;
 
-  static const _pages = <Widget>[
+  static final _pages = <Widget>[
     HomeScreen(),
     ChatScreen(),
-    EmptyPage(icon: '📅', title: '每日运势'),
-    EmptyPage(icon: '💖', title: '命盘中心'),
-    EmptyPage(icon: '👤', title: '我的'),
+    DailyScreen(),
+    BaziChartScreen(),
+    ProfileScreen(),
   ];
 
   @override
@@ -66,35 +67,6 @@ class _MainShellState extends State<MainShell> {
             BottomNavigationBarItem(icon: Icon(Icons.star_rounded), label: '命盘'),
             BottomNavigationBarItem(icon: Icon(Icons.person_rounded), label: '我的'),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-/// 空占位页
-class EmptyPage extends StatelessWidget {
-  final String icon;
-  final String title;
-
-  const EmptyPage({super.key, required this.icon, required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(gradient: FortuneTheme.bgGradient),
-        child: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(icon, style: const TextStyle(fontSize: 48)),
-              const SizedBox(height: 16),
-              Text(title, style: const TextStyle(color: FortuneTheme.textWhite, fontSize: 18)),
-              const SizedBox(height: 8),
-              const Text('即将推出...', style: TextStyle(color: FortuneTheme.silverGray, fontSize: 13)),
-            ],
-          ),
         ),
       ),
     );
