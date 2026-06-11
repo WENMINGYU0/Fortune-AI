@@ -26,7 +26,7 @@ class DailyScreen extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: const [
-                  _ScoreRing(label: '事业', score: 85, color: FortuneTheme.gold),
+                  _ScoreRing(label: '事业', score: 85, color: FortuneTheme.goldPrimary),
                   _ScoreRing(label: '爱情', score: 72, color: Color(0xFFFF6B8A)),
                   _ScoreRing(label: '财富', score: 90, color: Color(0xFF4ECDC4)),
                   _ScoreRing(label: '健康', score: 78, color: Color(0xFF45B7D1)),
@@ -153,7 +153,7 @@ class _AIAdviceCard extends StatelessWidget {
         children: [
           Row(
             children: const [
-              Icon(Icons.auto_awesome, color: FortuneTheme.gold, size: 18),
+              Icon(Icons.auto_awesome, color: FortuneTheme.goldPrimary, size: 18),
               SizedBox(width: 6),
               Text('AI 今日建议', style: TextStyle(color: FortuneTheme.textWhite, fontSize: 16, fontWeight: FontWeight.w600)),
             ],
@@ -184,9 +184,9 @@ class _DoDontCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(isDo ? Icons.check_circle : Icons.cancel, color: isDo ? FortuneTheme.jadeGreen : FortuneTheme.warningRed, size: 16),
+              Icon(isDo ? Icons.check_circle : Icons.cancel, color: isDo ? FortuneTheme.successGreen : FortuneTheme.errorRed, size: 16),
               const SizedBox(width: 4),
-              Text(isDo ? '宜' : '忌', style: TextStyle(color: isDo ? FortuneTheme.jadeGreen : FortuneTheme.warningRed, fontSize: 15, fontWeight: FontWeight.bold)),
+              Text(isDo ? '宜' : '忌', style: TextStyle(color: isDo ? FortuneTheme.successGreen : FortuneTheme.errorRed, fontSize: 15, fontWeight: FontWeight.bold)),
             ],
           ),
           const SizedBox(height: 8),
